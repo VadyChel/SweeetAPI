@@ -87,18 +87,24 @@ def get_block_purchases_summary_count(db: Session, block_id: int) -> dict:
     ).filter(models.BlocksPurchases.block_id == block_id).first()
 
 
-def get_user(db: Session, user_id: int) -> schemas.UserInResponse:
+def get_user(db: Session, user_id: str) -> schemas.UserInResponse:
     return db.query(models.Users).filter(models.Users.id == user_id).first()
 
 
 def edit_user(
         db: Session,
-        user_id: int,
+        user_id: str,
         updated_fields: dict
 ):
     db.query(models.Users).filter(models.Users.user_id == user_id).update(updated_fields)
     db.commit()
     return get_user(db=db, user_id=user_id)
+
+
+def get_current_user_id(db: Session, token: str) -> str:
+    found_token = db.query(models.AuthTokens).filter(models.AuthTokens.token == token).first()
+    if found_token is not None:
+        return found_token.user_id
 
 
 def get_shop(db: Session, skip: int = 0, limit: int = 20) -> typing.List[schemas.ShopItemInResponse]:
@@ -156,6 +162,11 @@ def authorize(db: Session, user_id: str) -> schemas.TokenInResponse:
 
 def get_token(db: Session, token: str) -> schemas.TokenInResponse:
     return db.query(models.AuthTokens).filter(models.AuthTokens.token == token).first()
+
+
+def edit_auth(db: Session, user_id: str, updated_fields: dict) -> None:
+    db.query(models.Auth).filter(models.Auth.user_id == user_id).update(updated_fields)
+    db.commit()
 
 
 def revoke_token(db: Session, token: str, user_id: str) -> None:

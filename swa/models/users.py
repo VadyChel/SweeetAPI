@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BIGINT, String
+from sqlalchemy import Column, BIGINT, String, SMALLINT
 from ..database import Base
 
 
@@ -9,5 +9,6 @@ class Users(Base):
     nick = Column(String)
     email = Column(String)
     skin_url = Column(String)
+    access_level = Column(SMALLINT)
     coins = Column(BIGINT) # In-game money
     bloksy = Column(BIGINT) # Money to bloksy

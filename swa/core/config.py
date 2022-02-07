@@ -8,4 +8,7 @@ class Config:
     START_BLOKSY = 10
     START_COINS = 500
 
+    NICK_MIN_LENGTH = 3
+    NICK_MAX_LENGTH = 48
+
     DEBUG = True

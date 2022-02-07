@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from swa.core import Config
 
 
 class TokenInResponse(BaseModel):
@@ -13,6 +15,6 @@ class TokenInResponse(BaseModel):
 
 
 class AuthInRequest(BaseModel):
-    nick: str
+    nick: str = Field(min_length=Config.NICK_MIN_LENGTH, max_length=Config.NICK_MAX_LENGTH)
     email: str
     password: str
