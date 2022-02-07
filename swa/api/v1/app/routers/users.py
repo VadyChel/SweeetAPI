@@ -79,7 +79,7 @@ async def change_user_nick_by_id(
     if current_user is None:
         raise ResponseException(code=10000, detail="User not found")
 
-    if current_user.access_level < 3:
+    if current_user.access_level < 22:
         raise ResponseException(code=10000, detail="You don't have permissions")
 
     user = crud.get_user(db=db, user_id=user_id)
