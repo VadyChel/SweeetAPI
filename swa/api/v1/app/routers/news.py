@@ -57,7 +57,7 @@ async def create_news(
 
 @router.patch(
     "/news/{news_id}",
-    response_model=schemas.ServerInResponse
+    response_model=schemas.NewsInResponse
 )
 async def edit_news(
         news_id: int,
@@ -85,7 +85,7 @@ async def edit_news(
 
 @router.delete(
     "/news/{news_id}",
-    response_model=schemas.ServerInResponse
+    response_model=schemas.NewsInResponse
 )
 async def delete_news(
         news_id: int,
