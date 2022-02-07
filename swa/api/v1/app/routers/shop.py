@@ -23,14 +23,25 @@ async def get_shop(skip: int = 0, limit: int = 20, db: Session = Depends(depende
     "/shop/buy/",
     response_model=schemas.NewsInResponse
 )
-async def buy_block(buying_data: schemas.BuyShopItem, db: Session = Depends(dependencies.get_db)):
+async def buy_block(
+        buying_data: schemas.BuyShopItem,
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    user_id = crud.get_current_user_id(db=db, token=authorization)
+    if user_id is None:
+        raise ResponseException(code=10000, detail="Invalid authorization")
+
+    user = crud.get_user(db=db, user_id=user_id)
+    if user is None:
+        raise ResponseException(code=10000, detail="User not found")
+
     block = crud.get_shop_item(db=db, block_id=buying_data.block_id)
     if block is None:
-        raise ResponseException(code=10002, detail="Bot not found")
+        raise ResponseException(code=10000, detail="Block not found")
 
     cost = block.cost * buying_data.count/block.count_per_one_cost
-    user = crud.get_user(db=db, user_id=user_id)
-    if user.coins < cost:
-        raise ResponseException(code=10, detail='There is not enough coins in user balance')
+    if user.bloksy < cost:
+        raise ResponseException(code=10000, detail='There is not enough coins in user balance')
 
-    return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.coins-cost})
+    return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.bloksy-cost})
