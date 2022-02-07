@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/{user_id}",
+    "/users/{user_id}",
     response_model=schemas.UserInResponse
 )
 async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
@@ -22,7 +22,7 @@ async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
 
 
 @router.get(
-    "/@me",
+    "/users/@me",
     response_model=schemas.UserInResponse
 )
 async def get_user_by_token(
@@ -41,7 +41,7 @@ async def get_user_by_token(
 
 
 @router.put(
-    "/@me/nick",
+    "/users/@me/nick",
     response_model=schemas.UserInResponse
 )
 async def change_user_nick(
@@ -62,7 +62,7 @@ async def change_user_nick(
 
 
 @router.put(
-    "/{user_id}/nick",
+    "/users/{user_id}/nick",
     response_model=schemas.UserInResponse
 )
 async def change_user_nick_by_id(
@@ -79,7 +79,7 @@ async def change_user_nick_by_id(
     if current_user is None:
         raise ResponseException(code=10000, detail="User not found")
 
-    if current_user.access_level < 2:
+    if current_user.access_level < 3:
         raise ResponseException(code=10000, detail="You don't have permissions")
 
     user = crud.get_user(db=db, user_id=user_id)

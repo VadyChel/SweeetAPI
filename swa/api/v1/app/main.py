@@ -50,7 +50,7 @@ rate_limit_middleware_backend_options = {
 # )
 app.include_router(
     users.router,
-    prefix="/v1/users"
+    prefix="/v1"
 )
 app.include_router(
     servers.router,

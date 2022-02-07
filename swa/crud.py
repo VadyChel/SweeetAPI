@@ -96,7 +96,7 @@ def edit_user(
         user_id: str,
         updated_fields: dict
 ):
-    db.query(models.Users).filter(models.Users.id == user_id).update(updated_fields)
+    db.query(models.Users).filter(models.Users.user_id == user_id).update(updated_fields)
     db.commit()
     return get_user(db=db, user_id=user_id)
 
