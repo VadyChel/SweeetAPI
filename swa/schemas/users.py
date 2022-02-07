@@ -1,16 +1,19 @@
+import typing
 from pydantic import BaseModel, Field
-
 from swa.core import Config
 
 
 class UserInResponse(BaseModel):
     id: int
-    nick: int
-    email: int
-    skin_url: str
+    nick: str
+    email: str
+    skin_url: typing.Optional[str]
     coins: int
     access_level: int
     bloksy: int # In-game money
+
+    class Config:
+        orm_mode = True
 
 
 class UserNickInRequest(BaseModel):

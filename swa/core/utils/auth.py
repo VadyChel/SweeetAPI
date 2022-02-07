@@ -28,4 +28,4 @@ def get_authorization_params(authorization: str) -> str:
     if token_type.lower() != "bearer":
         raise HTTPException(status_code=401, detail="Not authorized")
 
-    return params
+    return params.strip()
