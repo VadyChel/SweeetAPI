@@ -15,3 +15,6 @@ class ServerInResponse(BaseModel):
     image_url: str
     info: dict
     specials: dict
+
+    class Config:
+        orm_mode = True

@@ -41,8 +41,8 @@ async def buy_block(
     if block is None:
         raise ResponseException(code=10000, detail="Block not found")
 
-    cost = block.cost * buying_data.count/block.count_per_one_cost
-    if user.bloksy < cost:
+    cost = block.cost * buying_data.count
+    if user.coins < cost:
         raise ResponseException(code=10000, detail='There is not enough coins in user balance')
 
     purchases_manager.add_item(QueueItemSchema(
@@ -59,4 +59,4 @@ async def buy_block(
             )
         }
     ))
-    return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.bloksy-cost})
+    return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.coins-cost})

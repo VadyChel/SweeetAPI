@@ -12,6 +12,9 @@ class ShopItemInResponse(BaseModel):
     count_per_one_cost: int # Сколько блоков за одну стоимость
     specials: dict
 
+    class Config:
+        orm_mode = True
+
 
 class BuyShopItem(BaseModel):
     block_id: int

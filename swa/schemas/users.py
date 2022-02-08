@@ -12,6 +12,9 @@ class UserInResponse(BaseModel):
     access_level: int
     bloksy: int # In-game money
 
+    class Config:
+        orm_mode = True
+
 
 class UserNickInRequest(BaseModel):
     new_nick: str = Field(max_length=Config.NICK_MAX_LENGTH, min_length=Config.NICK_MIN_LENGTH)
