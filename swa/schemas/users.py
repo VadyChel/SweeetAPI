@@ -1,4 +1,5 @@
 import typing
+from datetime import datetime
 from pydantic import BaseModel, Field
 from swa.core import Config
 
@@ -9,6 +10,7 @@ class UserInResponse(BaseModel):
     email: str
     skin_url: typing.Optional[str]
     coins: int
+    created_at: datetime
     access_level: int
     bloksy: int # In-game money
 

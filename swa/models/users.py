@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BIGINT, String, SMALLINT
+from sqlalchemy import Column, BIGINT, String, SMALLINT, TIMESTAMP
 from ..database import Base
 
 
@@ -10,5 +10,6 @@ class Users(Base):
     email = Column(String)
     skin_url = Column(String)
     access_level = Column(SMALLINT)
+    created_at = Column(TIMESTAMP)
     coins = Column(BIGINT) # In-game money
     bloksy = Column(BIGINT) # Money to bloksy
