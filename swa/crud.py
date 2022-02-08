@@ -119,6 +119,7 @@ def register(db: Session, auth: schemas.AuthInRequest) -> schemas.TokenInRespons
         email=auth.email,
         coins=Config.START_COINS,
         bloksy=Config.START_BLOKSY,
+        access_level=0,
         created_at=datetime.datetime.now()
     )
     db.add(db_user)
