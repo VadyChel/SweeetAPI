@@ -22,7 +22,7 @@ async def get_shop(skip: int = 0, limit: int = 20, db: Session = Depends(depende
 
 @router.post(
     "/shop/buy/",
-    response_model=schemas.NewsInResponse
+    response_model=schemas.UserInResponse
 )
 async def buy_block(
         buying_data: schemas.BuyShopItem,
