@@ -12,7 +12,6 @@ class UserInResponse(BaseModel):
     coins: int
     created_at: datetime
     access_level: int
-    bloksy: int # In-game money
 
     class Config:
         orm_mode = True
@@ -20,3 +19,13 @@ class UserInResponse(BaseModel):
 
 class UserNickInRequest(BaseModel):
     new_nick: str = Field(max_length=Config.NICK_MAX_LENGTH, min_length=Config.NICK_MIN_LENGTH)
+
+
+class BloksyBalance(BaseModel):
+    id: int
+    user_id: str
+    server_id: int
+    bloksy: int # In game money
+
+    class Config:
+        orm_mode = True

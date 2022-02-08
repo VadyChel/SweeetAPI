@@ -7,3 +7,4 @@ from .servers_stat import ServersStat
 from .shop import Shop
 from .tokens import AuthTokens
 from .auth import Auth
+from .bloksy_balances import BloksyBalance

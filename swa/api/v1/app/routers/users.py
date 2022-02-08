@@ -1,3 +1,5 @@
+import typing
+
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 
@@ -38,6 +40,76 @@ async def get_user_by_token(
         raise ResponseException(code=10000, detail="User not found")
 
     return user
+
+
+@router.get(
+    "/users/@me/balance",
+    response_model=typing.List[schemas.BloksyBalance]
+)
+async def get_user_balance_by_token(
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    user_id = crud.get_current_user_id(db=db, token=authorization)
+    if user_id is None:
+        raise ResponseException(code=10000, detail='Invalid authorization')
+
+    user = crud.get_user(db=db, user_id=user_id)
+    if user is None:
+        raise ResponseException(code=10000, detail="User not found")
+
+    return crud.get_user_balance(db=db, user_id=user_id)
+
+
+@router.get(
+    "/users/@me/balance/{server_id}",
+    response_model=schemas.BloksyBalance
+)
+async def get_user_balance_on_server_by_token(
+        server_id: int,
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    user_id = crud.get_current_user_id(db=db, token=authorization)
+    if user_id is None:
+        raise ResponseException(code=10000, detail='Invalid authorization')
+
+    user = crud.get_user(db=db, user_id=user_id)
+    if user is None:
+        raise ResponseException(code=10000, detail="User not found")
+
+    return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
+
+
+@router.get(
+    "/users/{user_id}/balance",
+    response_model=typing.List[schemas.BloksyBalance]
+)
+async def get_user_balance_by_token(
+        user_id: str,
+        db: Session = Depends(dependencies.get_db)
+):
+    user = crud.get_user(db=db, user_id=user_id)
+    if user is None:
+        raise ResponseException(code=10000, detail="User not found")
+
+    return crud.get_user_balance(db=db, user_id=user_id)
+
+
+@router.get(
+    "/users/{user_id}/balance/{server_id}",
+    response_model=schemas.BloksyBalance
+)
+async def get_user_balance_on_server_by_token(
+        user_id: str,
+        server_id: int,
+        db: Session = Depends(dependencies.get_db)
+):
+    user = crud.get_user(db=db, user_id=user_id)
+    if user is None:
+        raise ResponseException(code=10000, detail="User not found")
+
+    return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
 
 
 @router.put(

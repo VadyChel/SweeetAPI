@@ -11,5 +11,4 @@ class Users(Base):
     skin_url = Column(String)
     access_level = Column(SMALLINT)
     created_at = Column(TIMESTAMP)
-    coins = Column(BIGINT) # In-game money
-    bloksy = Column(BIGINT) # Money to bloksy
+    coins = Column(BIGINT)

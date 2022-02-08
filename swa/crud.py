@@ -118,7 +118,6 @@ def register(db: Session, auth: schemas.AuthInRequest) -> schemas.TokenInRespons
         nick=auth.nick,
         email=auth.email,
         coins=Config.START_COINS,
-        bloksy=Config.START_BLOKSY,
         access_level=0,
         created_at=datetime.datetime.now()
     )
@@ -219,3 +218,14 @@ def add_user_purchase(db: Session, purchase: schemas.UserPurchaseInRequest):
     db.commit()
     db.refresh(db_purchase)
     return db_purchase
+
+
+def get_user_balance(db: Session, user_id: str) -> typing.List[schemas.BloksyBalance]:
+    return db.query(models.BloksyBalance).filter(models.BloksyBalance.user_id == user_id).all()
+
+
+def get_user_balance_on_server(db: Session, user_id: str, server_id: int) -> schemas.BloksyBalance:
+    return db.query(models.BloksyBalance).filter(
+        models.BloksyBalance.user_id == user_id,
+        models.BloksyBalance.server_id == server_id
+    ).first()
