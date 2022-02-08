@@ -63,28 +63,14 @@ def get_user_purchases(
             .all())
 
 
-def get_block_purchases(
-        db: Session, block_id: int, skip: int = 0, limit: int = 20
-) -> typing.List[schemas.BlockPurchaseInResponse]:
-    return (db.query(models.BlocksPurchases)
-            .filter(models.BlocksPurchases.block_id == block_id)
-            .offset(skip)
-            .limit(limit)
-            .all())
-
-
-def get_user_purchases_count(db: Session, user_id: int) -> int:
+def get_user_purchases_count(db: Session, user_id: str) -> int:
     return db.query(models.UsersPurchases).filter(models.UsersPurchases.user_id == user_id).count()
 
 
-def get_block_purchases_count(db: Session, block_id: int) -> int:
-    return db.query(models.BlocksPurchases).filter(models.BlocksPurchases.block_id == block_id).count()
-
-
-def get_block_purchases_summary_count(db: Session, block_id: int) -> dict:
+def get_block_purchases_count(db: Session, block_id: int) -> dict:
     return db.query(
-        func.sum(models.BlocksPurchases.count).label('count')
-    ).filter(models.BlocksPurchases.block_id == block_id).first()
+        func.sum(models.UsersPurchases.count).label('count')
+    ).filter(models.UsersPurchases.bought_item_id == block_id).first()
 
 
 def get_user(db: Session, user_id: str) -> schemas.UserInResponse:
@@ -223,3 +209,11 @@ def get_mutelist(db: Session, skip: int = 0, limit: int = 20) -> typing.List[sch
 def get_banlist(db: Session, skip: int = 0, limit: int = 20) -> typing.List[schemas.Punishment]:
     return (db.query(models.Punishments).filter(models.Punishments.type == 'ban')
             .offset(skip).limit(limit).all())
+
+
+def add_user_purchase(db: Session, purchase: schemas.UserPurchaseInRequest):
+    db_purchase = models.UsersPurchases(**purchase.dict())
+    db.add(db_purchase)
+    db.commit()
+    db.refresh(db_purchase)
+    return db_purchase

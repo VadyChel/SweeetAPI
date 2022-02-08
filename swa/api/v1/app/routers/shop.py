@@ -3,6 +3,7 @@ import typing
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 
+from swa.core.managers import QueueItemSchema, purchases_manager
 from swa.core.utils.response_exception import ResponseException
 from swa.api.v1.app import dependencies
 from swa import schemas, crud
@@ -44,4 +45,18 @@ async def buy_block(
     if user.bloksy < cost:
         raise ResponseException(code=10000, detail='There is not enough coins in user balance')
 
+    purchases_manager.add_item(QueueItemSchema(
+        db=db,
+        data={
+            "type": "user",
+            "purchase": schemas.UserPurchaseInRequest(
+                user_id=user_id,
+                cost=cost,
+                bought_item=block.block_name,
+                count=buying_data.count,
+                bought_item_id=block.id,
+                type='block'
+            )
+        }
+    ))
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.bloksy-cost})

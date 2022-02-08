@@ -1,5 +1,4 @@
 from .punishments import Punishments
-from .blocks_purchases import BlocksPurchases
 from .news import News
 from .servers import Servers
 from .users import Users
