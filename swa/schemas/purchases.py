@@ -9,6 +9,9 @@ class UserPurchaseInResponse(BaseModel):
     time: datetime
     coins_number: int
 
+    class Config:
+        orm_mode = True
+
 
 class BlockPurchaseInResponse(BaseModel):
     id: int
@@ -16,3 +19,6 @@ class BlockPurchaseInResponse(BaseModel):
     count: int
     time: datetime
     coins_number: int
+
+    class Config:
+        orm_mode = True

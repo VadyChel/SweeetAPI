@@ -16,11 +16,46 @@ router = APIRouter()
     response_model=typing.List[schemas.UserPurchaseInResponse]
 )
 async def get_user_purchases(
-        user_id: int,
+        user_id: str,
         limit: int = 20,
         skip: int = 0,
+        authorization: str = Depends(dependencies.authorization_header),
         db: Session = Depends(dependencies.get_db)
 ):
+    current_user_id = crud.get_current_user_id(db=db, token=authorization)
+    if current_user_id is None:
+        raise ResponseException(code=10000, detail="Invalid authorization")
+
+    current_user = crud.get_user(db=db, user_id=current_user_id)
+    if current_user is None:
+        raise ResponseException(code=10000, detail="User not found")
+
+    if current_user.access_level < 1 and current_user_id != user_id:
+        raise ResponseException(code=10000, detail="You don't have permissions")
+
+    if crud.get_user(db=db, user_id=user_id) is None:
+        raise ResponseException(code=10000, detail="User not found")
+
+    return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
+
+
+@router.get(
+    "/purchases/@me",
+    response_model=typing.List[schemas.UserPurchaseInResponse]
+)
+async def get_user_purchases_by_token(
+        limit: int = 20,
+        skip: int = 0,
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    user_id = crud.get_current_user_id(db=db, token=authorization)
+    if user_id is None:
+        raise ResponseException(code=10000, detail="Invalid authorization")
+
+    if crud.get_user(db=db, user_id=user_id) is None:
+        raise ResponseException(code=10000, detail="User not found")
+
     return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
 
 

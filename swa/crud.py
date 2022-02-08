@@ -54,7 +54,7 @@ def delete_news(db: Session, news_id: int):
 
 
 def get_user_purchases(
-        db: Session, user_id: int, skip: int = 0, limit: int = 20
+        db: Session, user_id: str, skip: int = 0, limit: int = 20
 ) -> typing.List[schemas.UserPurchaseInResponse]:
     return (db.query(models.UsersPurchases)
             .filter(models.UsersPurchases.user_id == user_id)
