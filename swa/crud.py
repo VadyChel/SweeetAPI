@@ -229,3 +229,22 @@ def get_user_balance_on_server(db: Session, user_id: str, server_id: int) -> sch
         models.BloksyBalance.user_id == user_id,
         models.BloksyBalance.server_id == server_id
     ).first()
+
+
+def get_server_stats(db: Session, server_id: int) -> schemas.ServerStats:
+    db_stats = (
+        db.query(models.ServersStat)
+        .filter(models.ServersStat.server_id == server_id)
+        .order_by(desc(models.ServersStat.time))
+        .first()
+    )
+    if db_stats is None:
+        return
+
+    record_online = (
+        db.query(models.ServersStat)
+        .filter(models.ServersStat.server_id == server_id)
+        .order_by(desc(models.ServersStat.online))
+        .first()
+    )
+    return schemas.ServerStats(**db_stats.__dict__, record_online=record_online.online)

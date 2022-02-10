@@ -1,4 +1,5 @@
 import typing
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -19,3 +20,12 @@ class ServerInResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ServerStats(BaseModel):
+    id: int
+    server_id: int
+    online: int
+    tps: int
+    time: datetime
+    record_online: int

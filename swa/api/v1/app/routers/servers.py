@@ -29,3 +29,14 @@ async def get_server(server_id: int, db: Session = Depends(dependencies.get_db))
         raise ResponseException(code=10002, detail="Bot not found")
 
     return server
+
+
+@router.get(
+    "/servers/{server_id}/stats",
+    response_model=schemas.ServerStats
+)
+async def get_server_stats(server_id: int, db: Session = Depends(dependencies.get_db)):
+    if crud.get_server(db=db, server_id=server_id) is None:
+        raise ResponseException(code=10002, detail="Bot not found")
+
+    return crud.get_server_stats(db=db, server_id=server_id)
