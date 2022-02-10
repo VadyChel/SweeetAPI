@@ -4,7 +4,7 @@ import typing
 import uuid
 
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, or_
 from fastapi import HTTPException
 
 from swa.core import utils, Config
@@ -195,7 +195,7 @@ def get_password_hash(db: Session, user_id: str) -> str:
 def get_user_id_by_auth(db: Session, auth: schemas.AuthInRequest) -> str:
     found_auth = db.query(models.Auth).filter(
         models.Auth.password_hash == auth.password,
-        models.Auth.nick == auth.nick or models.Auth.email == auth.email
+        or_(models.Auth.nick == auth.nick, models.Auth.email == auth.email)
     ).first()
 
     if found_auth is not None:

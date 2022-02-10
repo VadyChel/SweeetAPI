@@ -11,4 +11,5 @@ class Servers(Base):
     mods = Column(JSON)
     image_url = Column(String)
     info = Column(JSON)
+    long_description = Column(String)
     specials = Column(JSON)

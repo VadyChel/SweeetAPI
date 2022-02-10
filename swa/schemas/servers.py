@@ -12,9 +12,10 @@ class ServerInResponse(BaseModel):
     name: str
     description: str
     mods: typing.List[Mod]
-    image_url: str
+    image_url: typing.Optional[str]
+    long_description: str
     info: dict
-    specials: dict
+    specials: list
 
     class Config:
         orm_mode = True
