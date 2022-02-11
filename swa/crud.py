@@ -63,6 +63,15 @@ def get_user_purchases(
             .all())
 
 
+def get_all_purchases(
+        db: Session, skip: int = 0, limit: int = 20
+) -> typing.List[schemas.UserPurchaseInResponse]:
+    return (db.query(models.UsersPurchases)
+            .offset(skip)
+            .limit(limit)
+            .all())
+
+
 def get_user_purchases_count(db: Session, user_id: str) -> int:
     return db.query(models.UsersPurchases).filter(models.UsersPurchases.user_id == user_id).count()
 

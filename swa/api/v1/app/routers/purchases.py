@@ -12,6 +12,30 @@ router = APIRouter()
 
 
 @router.get(
+    "/purchases",
+    response_model=typing.List[schemas.UserPurchaseInResponse]
+)
+async def get_user_purchases(
+        limit: int = 20,
+        skip: int = 0,
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    current_user_id = crud.get_current_user_id(db=db, token=authorization)
+    if current_user_id is None:
+        raise ResponseException(code=10003)
+
+    current_user = crud.get_user(db=db, user_id=current_user_id)
+    if current_user is None:
+        raise ResponseException(code=10000)
+
+    if current_user.access_level < 2:
+        raise ResponseException(code=10004)
+
+    return crud.get_all_purchases(db=db, limit=limit, skip=skip)
+
+
+@router.get(
     "/purchases/users/{user_id}",
     response_model=typing.List[schemas.UserPurchaseInResponse]
 )

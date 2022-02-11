@@ -14,7 +14,7 @@ RESPONSE_CODE_TO_STATUS_CODE = {
 
 
 class ResponseException(HTTPException):
-    def __init__(self, code: int, detail: typing.Any):
+    def __init__(self, code: int, detail: str = None):
         detail = RESPONSE_CODE_TO_STATUS_CODE[code]["detail"] if detail is None else detail
         super().__init__(
             status_code=RESPONSE_CODE_TO_STATUS_CODE[code]["status_code"],
