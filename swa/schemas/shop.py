@@ -9,6 +9,7 @@ class ShopItemInResponse(BaseModel):
     mod: Mod
     cost: int
     max_count: int
+    available_on_servers: list
     count_per_one_cost: int # Сколько блоков за одну стоимость
     specials: dict
 

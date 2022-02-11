@@ -11,5 +11,5 @@ class Shop(Base):
     mod = Column(JSON)
     max_count = Column(BIGINT)
     count_per_one_cost = Column(BIGINT)
-    specials = Column(JSON)
+    available_on_servers = Column(JSON)
     cost = Column(BIGINT)
