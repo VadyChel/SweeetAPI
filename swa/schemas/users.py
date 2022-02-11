@@ -6,7 +6,7 @@ from swa.core import Config
 
 class Privilege(BaseModel):
     id: int
-    name: int
+    name: str
     remove_time: int
 
 
