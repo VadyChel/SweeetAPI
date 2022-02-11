@@ -18,7 +18,7 @@ class UserInResponse(BaseModel):
     coins: int
     created_at: datetime
     access_level: int
-    privilege: Privilege
+    privilege: typing.Optional[Privilege]
 
     class Config:
         orm_mode = True
