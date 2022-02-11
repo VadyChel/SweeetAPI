@@ -11,7 +11,6 @@ class ShopItemInResponse(BaseModel):
     max_count: int
     available_on_servers: list
     count_per_one_cost: int # Сколько блоков за одну стоимость
-    specials: dict
 
     class Config:
         orm_mode = True
