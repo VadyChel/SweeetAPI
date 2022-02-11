@@ -22,7 +22,7 @@ async def get_user_purchases(
         db: Session = Depends(dependencies.get_db)
 ):
     if crud.get_user(db=db, user_id=user_id) is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
 
@@ -39,10 +39,10 @@ async def get_user_purchases_by_token(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail="Invalid authorization")
+        raise ResponseException(code=10003)
 
     if crud.get_user(db=db, user_id=user_id) is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
 
@@ -65,7 +65,7 @@ async def get_user_purchases_by_token(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail="Invalid authorization")
+        raise ResponseException(code=10003)
 
     return crud.get_user_purchases_count(db=db, user_id=user_id)
 

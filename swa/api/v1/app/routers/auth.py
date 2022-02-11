@@ -1,7 +1,5 @@
-import typing
-
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from swa.core.utils.response_exception import ResponseException
 from swa.api.v1.app import dependencies
@@ -35,7 +33,7 @@ async def revoke_token(
     token, _, user_id = authorization.partition(" ")
     token, user_id = token.strip(), user_id.strip()
     if not user_id.isdigit():
-        raise HTTPException(status_code=400, detail="An invalid user id was provided")
+        raise ResponseException(code=10003)
 
     return crud.revoke_token(db=db, token=token, user_id=user_id)
 

@@ -26,7 +26,7 @@ async def get_servers(skip: int = 0, limit: int = 20, db: Session = Depends(depe
 async def get_server(server_id: int, db: Session = Depends(dependencies.get_db)):
     server = crud.get_server(db=db, server_id=server_id)
     if server is None:
-        raise ResponseException(code=10002, detail="Bot not found")
+        raise ResponseException(code=10001)
 
     return server
 
@@ -37,6 +37,6 @@ async def get_server(server_id: int, db: Session = Depends(dependencies.get_db))
 )
 async def get_server_stats(server_id: int, db: Session = Depends(dependencies.get_db)):
     if crud.get_server(db=db, server_id=server_id) is None:
-        raise ResponseException(code=10002, detail="Bot not found")
+        raise ResponseException(code=10001)
 
     return crud.get_server_stats(db=db, server_id=server_id)

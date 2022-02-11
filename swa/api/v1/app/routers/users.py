@@ -18,7 +18,7 @@ router = APIRouter()
 async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return user
 
@@ -33,11 +33,11 @@ async def get_user_by_token(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail='Invalid authorization')
+        raise ResponseException(code=10003)
 
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return user
 
@@ -52,11 +52,11 @@ async def get_user_balance_by_token(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail='Invalid authorization')
+        raise ResponseException(code=10003)
 
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return crud.get_user_balance(db=db, user_id=user_id)
 
@@ -72,11 +72,11 @@ async def get_user_balance_on_server_by_token(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail='Invalid authorization')
+        raise ResponseException(code=10003)
 
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
 
@@ -91,7 +91,7 @@ async def get_user_balance_by_token(
 ):
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return crud.get_user_balance(db=db, user_id=user_id)
 
@@ -107,7 +107,7 @@ async def get_user_balance_on_server_by_token(
 ):
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
 
@@ -123,11 +123,11 @@ async def change_user_nick(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail='Invalid authorization')
+        raise ResponseException(code=10003)
 
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     crud.edit_auth(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
@@ -145,18 +145,18 @@ async def change_user_nick_by_id(
 ):
     current_user_id = crud.get_current_user_id(db=db, token=authorization)
     if current_user_id is None:
-        raise ResponseException(code=10000, detail='Invalid authorization')
+        raise ResponseException(code=10003)
 
     current_user = crud.get_user(db=db, user_id=current_user_id)
     if current_user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     if current_user.access_level < 22:
-        raise ResponseException(code=10000, detail="You don't have permissions")
+        raise ResponseException(code=10004)
 
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     crud.edit_auth(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})

@@ -31,19 +31,19 @@ async def buy_block(
 ):
     user_id = crud.get_current_user_id(db=db, token=authorization)
     if user_id is None:
-        raise ResponseException(code=10000, detail="Invalid authorization")
+        raise ResponseException(code=10003)
 
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
-        raise ResponseException(code=10000, detail="User not found")
+        raise ResponseException(code=10000)
 
     block = crud.get_shop_item(db=db, block_id=buying_data.block_id)
     if block is None:
-        raise ResponseException(code=10000, detail="Block not found")
+        raise ResponseException(code=10005)
 
     cost = block.cost * buying_data.count
     if user.coins < cost:
-        raise ResponseException(code=10000, detail='There is not enough coins in user balance')
+        raise ResponseException(code=10006)
 
     purchases_manager.add_item(QueueItemSchema(
         db=db,
