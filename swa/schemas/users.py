@@ -4,6 +4,12 @@ from pydantic import BaseModel, Field
 from swa.core import Config
 
 
+class Privilege(BaseModel):
+    id: int
+    name: int
+    remove_time: int
+
+
 class UserInResponse(BaseModel):
     id: int
     nick: str
@@ -12,6 +18,7 @@ class UserInResponse(BaseModel):
     coins: int
     created_at: datetime
     access_level: int
+    privilege: Privilege
 
     class Config:
         orm_mode = True

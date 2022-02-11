@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BIGINT, String, SMALLINT, TIMESTAMP
+from sqlalchemy import Column, BIGINT, String, SMALLINT, TIMESTAMP, JSON
 from ..database import Base
 
 
@@ -12,3 +12,4 @@ class Users(Base):
     access_level = Column(SMALLINT)
     created_at = Column(TIMESTAMP)
     coins = Column(BIGINT)
+    privilege = Column(JSON)
