@@ -12,10 +12,17 @@ router = APIRouter()
 
 
 @router.get(
-    "/users/{user_id}",
+    "/users/@me",
     response_model=schemas.UserInResponse
 )
-async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
+async def get_current_user(
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    user_id = crud.get_current_user_id(db=db, token=authorization)
+    if user_id is None:
+        raise ResponseException(code=10003)
+
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
         raise ResponseException(code=10000)
@@ -24,17 +31,10 @@ async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
 
 
 @router.get(
-    "/users/@me",
+    "/users/{user_id}",
     response_model=schemas.UserInResponse
 )
-async def get_user_by_token(
-        authorization: str = Depends(dependencies.authorization_header),
-        db: Session = Depends(dependencies.get_db)
-):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
+async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
     user = crud.get_user(db=db, user_id=user_id)
     if user is None:
         raise ResponseException(code=10000)
