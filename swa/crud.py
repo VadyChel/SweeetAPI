@@ -202,10 +202,10 @@ def get_password_hash(db: Session, user_id: str) -> str:
         return db_auth.password_hash
 
 
-def get_user_id_by_auth(db: Session, auth: schemas.AuthInRequest) -> str:
+def get_user_id_by_auth(db: Session, auth: schemas.LoginInRequest) -> str:
     found_auth = db.query(models.Auth).filter(
         models.Auth.password_hash == auth.password,
-        or_(models.Auth.nick == auth.nick, models.Auth.email == auth.email)
+        models.Auth.email == auth.email
     ).first()
 
     if found_auth is not None:

@@ -18,3 +18,8 @@ class AuthInRequest(BaseModel):
     nick: str = Field(min_length=Config.NICK_MIN_LENGTH, max_length=Config.NICK_MAX_LENGTH)
     email: str
     password: str
+
+
+class LoginInRequest(BaseModel):
+    email: str
+    password: str

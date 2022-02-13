@@ -21,7 +21,7 @@ async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depe
     "/token",
     response_model=schemas.TokenInResponse
 )
-async def get_token(auth: schemas.AuthInRequest, db: Session = Depends(dependencies.get_db)):
+async def get_token(auth: schemas.LoginInRequest, db: Session = Depends(dependencies.get_db)):
     return crud.authorize(db=db, user_id=crud.get_user_id_by_auth(db=db, auth=auth))
 
 
