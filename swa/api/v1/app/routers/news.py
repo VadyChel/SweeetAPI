@@ -77,7 +77,7 @@ async def edit_news(
     if news is None:
         raise ResponseException(code=10002)
 
-    if user.access_level < 1 or news.author_id != news.author_id:
+    if user.access_level <= 1 or news.author_id != news.author_id:
         raise ResponseException(code=10004)
 
     return crud.edit_news(db=db, news_id=news_id, news=news_changes)
@@ -104,7 +104,7 @@ async def delete_news(
     if news is None:
         raise ResponseException(code=10002)
 
-    if user.access_level < 1 or news.author_id != news.author_id:
+    if user.access_level <= 1 or news.author_id != news.author_id:
         raise ResponseException(code=10004)
 
     return crud.delete_news(db=db, news_id=news_id)
