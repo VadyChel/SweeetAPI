@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from swa.core import utils, Config
 from . import models, schemas
 from .core.utils.auth import generate_user_id, generate_token
+from .core.utils.response_exception import ResponseException
 
 
 def get_server(db: Session, server_id: int) -> schemas.ServerInResponse:
@@ -112,7 +113,7 @@ def get_shop_item(db: Session, block_id: id) -> schemas.ShopItemInResponse:
 
 def register(db: Session, auth: schemas.AuthInRequest) -> schemas.TokenInResponse:
     if db.query(models.Auth).filter(models.Auth.email == auth.email).first() is not None:
-        raise HTTPException(status_code=400, detail='Email is already used')
+        raise ResponseException(code=10007)
 
     user_id = generate_user_id(db)
     db_auth = models.Auth(
@@ -138,7 +139,7 @@ def register(db: Session, auth: schemas.AuthInRequest) -> schemas.TokenInRespons
 
 def authorize(db: Session, user_id: str) -> schemas.TokenInResponse:
     if user_id is None:
-        raise HTTPException(status_code=400, detail='Invalid data')
+        raise ResponseException(code=10008)
 
     db_token = db.query(models.AuthTokens).filter(models.AuthTokens.user_id == user_id).first()
     if db_token is None:
