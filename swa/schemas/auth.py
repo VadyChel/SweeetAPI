@@ -17,7 +17,7 @@ class TokenInResponse(BaseModel):
 class AuthInRequest(BaseModel):
     nick: str = Field(min_length=Config.NICK_MIN_LENGTH, max_length=Config.NICK_MAX_LENGTH)
     email: str
-    password: str
+    password: str = Field(min_length=Config.PASSWORD_MIN_LENGTH)
 
 
 class LoginInRequest(BaseModel):

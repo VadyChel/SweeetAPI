@@ -10,5 +10,6 @@ class Config:
 
     NICK_MIN_LENGTH = 3
     NICK_MAX_LENGTH = 48
+    PASSWORD_MIN_LENGTH = 10
 
     DEBUG = True
