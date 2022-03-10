@@ -12,4 +12,4 @@ class Shop(Base):
     max_count = Column(BIGINT)
     count_per_one_cost = Column(BIGINT)
     available_on_servers = Column(JSON)
-    cost = Column(BIGINT)
+    cost = Column(JSON)

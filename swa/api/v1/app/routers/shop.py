@@ -41,7 +41,7 @@ async def buy_block(
     if block is None:
         raise ResponseException(code=10005)
 
-    cost = block.cost * buying_data.count
+    cost = block.cost[str(buying_data.server_id)] * (buying_data.count / block.count_per_one_cost)
     if user.coins < cost:
         raise ResponseException(code=10006)
 
