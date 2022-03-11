@@ -77,10 +77,10 @@ def get_user_purchases_count(db: Session, user_id: str) -> int:
     return db.query(models.UsersPurchases).filter(models.UsersPurchases.user_id == user_id).count()
 
 
-def get_block_purchases_count(db: Session, block_id: int) -> dict:
-    return db.query(
-        func.sum(models.UsersPurchases.count).label('count')
-    ).filter(models.UsersPurchases.bought_item_id == block_id).first()
+def get_block_purchases_count(db: Session, block_id: int) -> int:
+    return db.query(func.count(models.UsersPurchases.id)).filter(
+        models.UsersPurchases.bought_item_id == block_id
+    ).first()[0]
 
 
 def get_user(db: Session, user_id: str) -> schemas.UserInResponse:

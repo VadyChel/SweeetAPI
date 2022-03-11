@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 
 from swa.core.managers import QueueItemSchema, purchases_manager
+from swa.core.utils.other import model_to_dict
 from swa.core.utils.response_exception import ResponseException
 from swa.api.v1.app import dependencies
 from swa import schemas, crud
@@ -17,7 +18,13 @@ router = APIRouter()
     response_model=typing.List[schemas.ShopItemInResponse]
 )
 async def get_shop(skip: int = 0, limit: int = 20, db: Session = Depends(dependencies.get_db)):
-    return crud.get_shop(db=db, skip=skip, limit=limit)
+    return [
+        {
+            "purchases": crud.get_block_purchases_count(db=db, block_id=shop_item.id),
+            **model_to_dict(shop_item)
+        }
+        for shop_item in crud.get_shop(db=db, skip=skip, limit=limit)
+    ]
 
 
 @router.post(

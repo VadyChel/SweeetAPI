@@ -99,4 +99,4 @@ async def get_user_purchases_by_token(
     response_model=int
 )
 async def get_block_purchases_count(block_id: int, db: Session = Depends(dependencies.get_db)):
-    return crud.get_block_purchases_count(db=db, block_id=block_id)["count"]
+    return crud.get_block_purchases_count(db=db, block_id=block_id)
