@@ -36,3 +36,14 @@ class BloksyBalance(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class BloksyBalanceInTop(BaseModel):
+    id: int
+    user_id: str
+    server_id: int
+    user_nick: str
+    bloksy: int # In game money
+
+    class Config:
+        orm_mode = True

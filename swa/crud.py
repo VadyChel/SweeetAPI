@@ -241,7 +241,7 @@ def get_user_balance_on_server(db: Session, user_id: str, server_id: int) -> sch
     ).first()
 
 
-def get_server_stats(db: Session, server_id: int) -> schemas.ServerStats:
+def get_server_stats(db: Session, server_id: int) -> typing.Optional[schemas.ServerStats]:
     db_stats = (
         db.query(models.ServersStat)
         .filter(models.ServersStat.server_id == server_id)
@@ -258,3 +258,11 @@ def get_server_stats(db: Session, server_id: int) -> schemas.ServerStats:
         .first()
     )
     return schemas.ServerStats(**db_stats.__dict__, record_online=record_online.online)
+
+
+def get_bloksy_balances_top_on_server(db: Session, server_id: int) -> typing.List[schemas.BloksyBalance]:
+    return (
+        db.query(models.BloksyBalance)
+        .filter(models.BloksyBalance.server_id == server_id)
+        .order_by(desc(models.BloksyBalance.bloksy)).limit(100).all()
+    )
