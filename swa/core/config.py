@@ -5,8 +5,8 @@ class Config:
     DB_NAME = 'sweeet'
     DB_PORT = '5400'
 
-    START_BLOKSY = 10
-    START_COINS = 500
+    START_BLOKSY = 500
+    START_COINS = 10
 
     NICK_MIN_LENGTH = 3
     NICK_MAX_LENGTH = 48
