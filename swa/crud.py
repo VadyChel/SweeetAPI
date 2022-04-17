@@ -222,6 +222,13 @@ def get_banlist(db: Session, skip: int = 0, limit: int = 20) -> typing.List[sche
             .offset(skip).limit(limit).all())
 
 
+def get_user_punishments(
+        db: Session, user_id: str, skip: int = 0, limit: int = 20
+) -> typing.List[schemas.Punishment]:
+    return (db.query(models.Punishments).filter(models.Punishments.user_id == user_id)
+            .offset(skip).limit(limit).all())
+
+
 def add_user_purchase(db: Session, purchase: schemas.UserPurchaseInRequest):
     db_purchase = models.UsersPurchases(**purchase.dict())
     db.add(db_purchase)

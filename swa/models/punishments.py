@@ -7,6 +7,7 @@ class Punishments(Base):
 
     id = Column(BIGINT, primary_key=True)
     nick = Column(String)
+    user_id = Column(String)
     reason = Column(String)
     server = Column(String)
     moderator = Column(String)
