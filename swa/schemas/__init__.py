@@ -5,3 +5,4 @@ from .users import *
 from .shop import *
 from .auth import *
 from .punishments import *
+from .bought_items import *

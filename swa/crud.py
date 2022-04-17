@@ -229,6 +229,18 @@ def get_user_punishments(
             .offset(skip).limit(limit).all())
 
 
+def get_user_bought_items(db: Session, user_id: str) -> typing.List[schemas.BoughtItemInResponse]:
+    return db.query(models.BoughtItems).filter(models.BoughtItems.user_id == user_id).all()
+
+
+def add_user_bought_items(db: Session, block: schemas.BoughtItemInRequest):
+    db_item = models.BoughtItems(**block.dict())
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+
 def add_user_purchase(db: Session, purchase: schemas.UserPurchaseInRequest):
     db_purchase = models.UsersPurchases(**purchase.dict())
     db.add(db_purchase)

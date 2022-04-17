@@ -160,3 +160,22 @@ async def change_user_nick_by_id(
 
     crud.edit_auth(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
+
+
+@router.get(
+    "/users/@me/inventory",
+    response_model=typing.List[schemas.BoughtItemInResponse]
+)
+async def get_user_bought_items(
+        authorization: str = Depends(dependencies.authorization_header),
+        db: Session = Depends(dependencies.get_db)
+):
+    user_id = crud.get_current_user_id(db=db, token=authorization)
+    if user_id is None:
+        raise ResponseException(code=10003)
+
+    user = crud.get_user(db=db, user_id=user_id)
+    if user is None:
+        raise ResponseException(code=10000)
+
+    return crud.get_user_bought_items(db=db, user_id=user_id)

@@ -66,4 +66,14 @@ async def buy_block(
             )
         }
     ))
+    crud.add_user_bought_items(
+        db=db,
+        block=schemas.BoughtItemInRequest(
+            minecraft_item_id=block.minecraft_block_id,
+            item_id=block.id,
+            count=buying_data.count,
+            item_name=block.block_name,
+            user_id=user_id
+        ),
+    )
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.coins-cost})
