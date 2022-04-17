@@ -8,7 +8,7 @@ class TokenInResponse(BaseModel):
     token: str
     refresh_token: str
     expiry_at: int
-    user_id: int
+    user_id: str
 
     class Config:
         orm_mode = True
