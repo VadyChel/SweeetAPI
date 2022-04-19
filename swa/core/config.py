@@ -7,7 +7,7 @@ class Config:
 
     START_BLOKSY = 500
     START_COINS = 10
-    BLOKSY_EXCHANGE_FUNC = lambda coins: coins * 100
+    COINS_EXCHANGE_FUNC = lambda coins: coins * 100
 
     NICK_MIN_LENGTH = 3
     NICK_MAX_LENGTH = 48

@@ -186,7 +186,7 @@ async def get_user_bought_items(
     "/users/@me/exchange",
     response_model=schemas.UserInResponse
 )
-async def exchange_user_money_to_bloksy(
+async def exchange_user_coins_to_bloksy(
         coins: int,
         server_id: int,
         authorization: str = Depends(dependencies.authorization_header),
@@ -207,6 +207,6 @@ async def exchange_user_money_to_bloksy(
         db=db,
         server_id=server_id,
         user_id=user_id,
-        added_bloksy=Config.BLOKSY_EXCHANGE_FUNC(coins)
+        added_bloksy=Config.COINS_EXCHANGE_FUNC(coins)
     )
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.coins-coins})
