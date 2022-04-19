@@ -285,3 +285,18 @@ def get_bloksy_balances_top_on_server(db: Session, server_id: int) -> typing.Lis
         .filter(models.BloksyBalance.server_id == server_id)
         .order_by(desc(models.BloksyBalance.bloksy)).limit(100).all()
     )
+
+
+def change_bloksy_balance(
+        db: Session, server_id: int, user_id: str, added_bloksy: int
+) -> None:
+    balance_query = db.query(models.BloksyBalance).filter(
+        models.BloksyBalance.server_id == server_id,
+        models.BloksyBalance.user_id == user_id
+    )
+    old_balance = balance_query.first()
+    if old_balance is None:
+        raise ResponseException(code=10000)
+
+    balance_query.update({'bloksy': old_balance.bloksy+added_bloksy})
+    db.commit()
