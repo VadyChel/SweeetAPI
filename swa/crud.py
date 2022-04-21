@@ -296,7 +296,9 @@ def change_bloksy_balance(
     )
     old_balance = balance_query.first()
     if old_balance is None:
-        raise ResponseException(code=10000)
+        old_bloksy_balance = 0
+    else:
+        old_bloksy_balance = old_balance.bloksy
 
-    balance_query.update({'bloksy': old_balance.bloksy+added_bloksy})
+    balance_query.update({'bloksy': old_bloksy_balance+added_bloksy})
     db.commit()
