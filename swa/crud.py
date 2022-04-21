@@ -296,9 +296,17 @@ def change_bloksy_balance(
     )
     old_balance = balance_query.first()
     if old_balance is None:
-        old_bloksy_balance = 0
+        add_bloksy_balance(db=db, user_id=user_id, server_id=server_id, bloksy=added_bloksy)
     else:
-        old_bloksy_balance = old_balance.bloksy
+        balance_query.update({'bloksy': old_balance.bloksy + added_bloksy})
+        db.commit()
 
-    balance_query.update({'bloksy': old_bloksy_balance+added_bloksy})
+
+def add_bloksy_balance(
+        db: Session, user_id: str, server_id: int, bloksy: int = 0
+) -> schemas.BloksyBalance:
+    db_bloksy = models.BloksyBalance(user_id=user_id, server_id=server_id, bloksy=bloksy)
+    db.add(db_bloksy)
     db.commit()
+    db.refresh(db_bloksy)
+    return db_bloksy
