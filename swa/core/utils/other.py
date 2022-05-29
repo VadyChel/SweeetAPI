@@ -6,7 +6,7 @@ import datetime
 class DatetimeSerializer(json.JSONEncoder):
     def default(self, obj: typing.Any) -> typing.Any:
         if isinstance(obj, (datetime.date, datetime.datetime)):
-            return obj.timestamp()
+            return obj.isoformat()
 
 
 def fix_datetime(data: typing.Any) -> typing.Any:

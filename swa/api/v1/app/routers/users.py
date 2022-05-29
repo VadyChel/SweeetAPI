@@ -16,19 +16,8 @@ router = APIRouter()
     "/users/@me",
     response_model=schemas.UserInResponse
 )
-async def get_current_user(
-        authorization: str = Depends(dependencies.authorization_header),
-        db: Session = Depends(dependencies.get_db)
-):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    return user
+async def get_current_user(current_user: dependencies.Authorization = Depends(dependencies.Authorization)):
+    return current_user.db_user
 
 
 @router.get(
@@ -36,11 +25,7 @@ async def get_current_user(
     response_model=schemas.UserInResponse
 )
 async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    return user
+    return crud.get_user(db=db, user_id=user_id)
 
 
 @router.get(
@@ -48,18 +33,10 @@ async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
     response_model=typing.List[schemas.BloksyBalance]
 )
 async def get_user_balance_by_token(
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    return crud.get_user_balance(db=db, user_id=user_id)
+    return crud.get_user_balance(db=db, user_id=current_user.user_id)
 
 
 @router.get(
@@ -68,32 +45,18 @@ async def get_user_balance_by_token(
 )
 async def get_user_balance_on_server_by_token(
         server_id: int,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
+    return crud.get_user_balance_on_server(db=db, user_id=current_user.user_id, server_id=server_id)
 
 
 @router.get(
     "/users/{user_id}/balance",
     response_model=typing.List[schemas.BloksyBalance]
 )
-async def get_user_balance_by_token(
-        user_id: str,
-        db: Session = Depends(dependencies.get_db)
-):
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
+async def get_user_balance(user_id: str, db: Session = Depends(dependencies.get_db)):
+    crud.get_user(db=db, user_id=user_id)  # Check if user not found
     return crud.get_user_balance(db=db, user_id=user_id)
 
 
@@ -101,15 +64,12 @@ async def get_user_balance_by_token(
     "/users/{user_id}/balance/{server_id}",
     response_model=schemas.BloksyBalance
 )
-async def get_user_balance_on_server_by_token(
+async def get_user_balance_on_server(
         user_id: str,
         server_id: int,
         db: Session = Depends(dependencies.get_db)
 ):
     user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
     return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
 
 
@@ -119,19 +79,11 @@ async def get_user_balance_on_server_by_token(
 )
 async def change_user_nick(
         new_nick: schemas.UserNickInRequest,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    crud.edit_auth(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
-    return crud.edit_user(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
+    crud.edit_auth(db=db, user_id=current_user.user_id, updated_fields={'nick': new_nick.new_nick})
+    return crud.edit_user(db=db, user_id=current_user.user_id, updated_fields={'nick': new_nick.new_nick})
 
 
 @router.put(
@@ -141,24 +93,13 @@ async def change_user_nick(
 async def change_user_nick_by_id(
         user_id: str,
         new_nick: schemas.UserNickInRequest,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    current_user_id = crud.get_current_user_id(db=db, token=authorization)
-    if current_user_id is None:
-        raise ResponseException(code=10003)
-
-    current_user = crud.get_user(db=db, user_id=current_user_id)
-    if current_user is None:
-        raise ResponseException(code=10000)
-
-    if current_user.access_level < 22:
+    if current_user.access_level < 2:
         raise ResponseException(code=10004)
 
     user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
     crud.edit_auth(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
     return crud.edit_user(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
 
@@ -168,18 +109,10 @@ async def change_user_nick_by_id(
     response_model=typing.List[schemas.BoughtItemInResponse]
 )
 async def get_user_bought_items(
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    return crud.get_user_bought_items(db=db, user_id=user_id)
+    return crud.get_user_bought_items(db=db, user_id=current_user.user_id)
 
 
 @router.post(
@@ -189,24 +122,20 @@ async def get_user_bought_items(
 async def exchange_user_coins_to_bloksy(
         coins: int,
         server_id: int,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    if user.coins < coins:
+    if current_user.db_user.coins < coins:
         raise ResponseException(code=10006)
 
     crud.change_bloksy_balance(
         db=db,
         server_id=server_id,
-        user_id=user_id,
+        user_id=current_user.user_id,
         added_bloksy=Config.COINS_EXCHANGE_FUNC(coins)
     )
-    return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.coins-coins})
+    return crud.edit_user(
+        db=db,
+        user_id=current_user.user_id,
+        updated_fields={'coins': current_user.db_user.coins-coins}
+    )

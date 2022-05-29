@@ -1,14 +1,20 @@
 from pydantic import BaseModel, Field
 
+from swa.schemas.users import UserInResponse
 from swa.core import Config
 
 
-class TokenInResponse(BaseModel):
-    id: int
-    token: str
+class TokenInDb(BaseModel):
+    id: int = None
     refresh_token: str
-    expiry_at: int
+    access_level: int
     user_id: str
+
+
+class TokenInResponse(TokenInDb):
+    user: UserInResponse
+    access_token: str
+    expiry_at: int
 
     class Config:
         orm_mode = True

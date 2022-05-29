@@ -7,10 +7,17 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, func, or_
 from fastapi import HTTPException
 
-from swa.core import utils, Config
+from swa.core import Config
 from . import models, schemas
-from .core.utils.auth import generate_user_id, generate_token
+from .core.utils.auth import (
+    generate_tokens,
+    generate_user_id,
+    get_password_hash,
+    verify_password,
+    validate_refresh_token
+)
 from .core.utils.response_exception import ResponseException
+from .core.utils.other import model_to_dict
 
 
 def get_server(db: Session, server_id: int) -> schemas.ServerInResponse:
@@ -84,7 +91,11 @@ def get_block_purchases_count(db: Session, block_id: int) -> int:
 
 
 def get_user(db: Session, user_id: str) -> schemas.UserInResponse:
-    return db.query(models.Users).filter(models.Users.id == user_id).first()
+    found_user = db.query(models.Users).filter(models.Users.id == user_id).first()
+    if found_user is None:
+        raise ResponseException(code=10000)
+
+    return found_user
 
 
 def edit_user(
@@ -116,8 +127,13 @@ def register(db: Session, auth: schemas.AuthInRequest) -> schemas.TokenInRespons
         raise ResponseException(code=10007)
 
     user_id = generate_user_id(db)
+    password_hash = get_password_hash(auth.password)
+    access_level = 0
     db_auth = models.Auth(
-        **{'user_id': user_id, 'password_hash': auth.password, 'nick': auth.nick, 'email': auth.email}
+        user_id=user_id,
+        password_hash=password_hash,
+        nick=auth.nick,
+        email=auth.email
     )
     db.add(db_auth)
     db.commit()
@@ -128,37 +144,72 @@ def register(db: Session, auth: schemas.AuthInRequest) -> schemas.TokenInRespons
         nick=auth.nick,
         email=auth.email,
         coins=Config.START_COINS,
-        access_level=0,
+        access_level=access_level,
         created_at=datetime.datetime.now()
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return authorize(db=db, user_id=user_id)
+
+    tokens = generate_tokens(user_id=user_id, access_level=access_level)
+    save_token(db=db, refresh_token=tokens["refresh_token"], user_id=user_id, access_level=access_level)
+    return schemas.TokenInResponse(
+        **tokens,  # refresh_token, access_token
+        user_id=user_id,
+        access_level=access_level,
+        user=db_user
+    )
 
 
-def authorize(db: Session, user_id: str) -> schemas.TokenInResponse:
-    if user_id is None:
+def authorize(db: Session, auth: schemas.LoginInRequest) -> schemas.TokenInResponse:
+    found_auth = db.query(models.Auth).filter(models.Auth.email == auth.email).first()
+    if found_auth is None:
         raise ResponseException(code=10008)
 
-    db_token = db.query(models.AuthTokens).filter(models.AuthTokens.user_id == user_id).first()
-    if db_token is None:
-        password_hash = get_password_hash(db=db, user_id=user_id)
-        db_token = models.AuthTokens(
-            token=generate_token(user_id=user_id, password_hash=password_hash),
-            refresh_token=generate_token(user_id=user_id, password_hash=password_hash),
-            user_id=user_id,
-            expiry_at=time.time()+1209600
+    password_hash = get_password_hash(auth.password)
+    is_password_correct = verify_password(plain_password=auth.password, hashed_password=password_hash)
+    if not is_password_correct:
+        raise ResponseException(code=10009)
+
+    user = get_user(db=db, user_id=found_auth.user_id)
+    tokens = generate_tokens(user_id=found_auth.user_id, access_level=user.access_level)
+    save_token(
+        db=db,
+        refresh_token=tokens["refresh_token"],
+        user_id=found_auth.user_id,
+        access_level=user.access_level
+    )
+
+    return schemas.TokenInResponse(
+        **tokens,  # refresh_token, access_token
+        user_id=found_auth.user_id,
+        access_level=user.access_level,
+        user=user
+    )
+
+
+def get_token(db: Session, user_id: str) -> schemas.TokenInDb:
+    return db.query(models.AuthTokens).filter(models.AuthTokens.user_id == user_id).first()
+
+
+def save_token(db: Session, refresh_token: str, user_id: str, access_level: int) -> schemas.TokenInDb:
+    db_token = get_token(db=db, user_id=user_id)
+    if db_token is not None:
+        db.query(models.AuthTokens).filter(models.AuthTokens.user_id == user_id).update(
+            {"refresh_token": refresh_token, "access_level": access_level}
         )
-        db.add(db_token)
         db.commit()
-        db.refresh(db_token)
+        return get_token(db=db, user_id=user_id)
 
+    db_token = models.AuthTokens(
+        refresh_token=refresh_token,
+        user_id=user_id,
+        access_level=access_level
+    )
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
     return db_token
-
-
-def get_token(db: Session, token: str) -> schemas.TokenInResponse:
-    return db.query(models.AuthTokens).filter(models.AuthTokens.token == token).first()
 
 
 def edit_auth(db: Session, user_id: str, updated_fields: dict) -> None:
@@ -166,9 +217,9 @@ def edit_auth(db: Session, user_id: str, updated_fields: dict) -> None:
     db.commit()
 
 
-def revoke_token(db: Session, token: str, user_id: str) -> None:
-    delete_obj = db.query(models.AuthTokens).filter_by(
-        token=token, user_id=user_id
+def revoke_token(db: Session, refresh_token: str) -> None:
+    delete_obj = db.query(models.AuthTokens).filter(
+        models.AuthTokens.refresh_token == refresh_token
     )
     if delete_obj.first() is None:
         raise HTTPException(status_code=403, detail="Forbidden")
@@ -178,38 +229,28 @@ def revoke_token(db: Session, token: str, user_id: str) -> None:
 
 
 def get_refresh_token(db: Session, refresh_token: str) -> schemas.TokenInResponse:
-    update_obj = db.query(models.AuthTokens).filter(
+    token_data = validate_refresh_token(refresh_token)
+    found_token = db.query(models.AuthTokens).filter(
         models.AuthTokens.refresh_token == refresh_token
-    )
-    found_token = update_obj.first()
-    if found_token is None:
+    ).first()
+    if found_token is None or token_data is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    password_hash = get_password_hash(db=db, user_id=found_token.user_id)
-    payload = {
-        'refresh_token': generate_token(user_id=found_token.user_id, password_hash=password_hash),
-        'token': generate_token(user_id=found_token.user_id, password_hash=password_hash),
-        'expiry_at': time.time()+1209600
-    }
-    update_obj.update(payload)
-    db.commit()
-    return get_token(db=db, token=payload['token'])
+    user = get_user(db=db, user_id=found_token.user_id)
+    tokens = generate_tokens(user_id=found_token.user_id, access_level=user.access_level)
+    save_token(
+        db=db,
+        refresh_token=tokens["refresh_token"],
+        access_level=user.access_level,
+        user_id=found_token.user_id
+    )
 
-
-def get_password_hash(db: Session, user_id: str) -> str:
-    db_auth = db.query(models.Auth).filter(models.Auth.user_id == user_id).first()
-    if db_auth is not None:
-        return db_auth.password_hash
-
-
-def get_user_id_by_auth(db: Session, auth: schemas.LoginInRequest) -> str:
-    found_auth = db.query(models.Auth).filter(
-        models.Auth.password_hash == auth.password,
-        models.Auth.email == auth.email
-    ).first()
-
-    if found_auth is not None:
-        return found_auth.user_id
+    return schemas.TokenInResponse(
+        **tokens,  # refresh_token, access_token
+        user_id=found_token.user_id,
+        access_level=user.access_level,
+        user=user
+    )
 
 
 def get_mutelist(db: Session, skip: int = 0, limit: int = 20) -> typing.List[schemas.Punishment]:

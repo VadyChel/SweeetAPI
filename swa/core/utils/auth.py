@@ -1,31 +1,78 @@
 import time
-import os
-import base64
+import typing
+import jwt
 
-from fastapi import HTTPException
+from datetime import datetime, timedelta
+from jwt import PyJWTError
+from random import randint
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 
 from swa import models
-from random import randint
-from sqlalchemy.orm import Session
-from cryptography.fernet import Fernet
+from swa.core import Config
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 
 def generate_user_id(db: Session):
     return str(int(bin(int(time.time()))+bin(db.query(models.Users).count())[2:]+bin(randint(0, 1000000))[2:], 2))
 
 
-def generate_token(user_id: str, password_hash: str):
-    cipher = Fernet(key=base64.urlsafe_b64encode(os.urandom(32)))
-    key = f"{base64.urlsafe_b64encode(os.urandom(64))}{user_id}{password_hash}{time.time()}".encode()
-    return cipher.encrypt(key).decode('utf8')
+def generate_tokens(user_id: str, access_level: int):
+    access_token_expiry_at = int(time.time() + (60 * 60 * 24 * 5))  # 5 days
+    refresh_token_expiry_at = int(time.time() + (60 * 60 * 24 * 45))  # 45 days
+    refresh_token = jwt.encode(
+        {
+            "user_id": user_id,
+            "access_level": access_level,
+            "exp": access_token_expiry_at
+        },
+        Config.JWT_REFRESH_SECRET,
+        algorithm='HS256'
+    )
+    access_token = jwt.encode(
+        {
+            "user_id": user_id,
+            "access_level": access_level,
+            "exp": refresh_token_expiry_at
+        },
+        Config.JWT_ACCESS_SECRET,
+        algorithm='HS256'
+    )
+    return {
+        "refresh_token": refresh_token,
+        "access_token": access_token,
+        "expiry_at": refresh_token_expiry_at
+    }
 
 
-def get_authorization_params(authorization: str) -> str:
-    if authorization is None:
-        raise HTTPException(status_code=401, detail="Not authorized")
+def validate_access_token(access_token: str) -> typing.Optional[dict]:
+    try:
+        return jwt.decode(
+            access_token,
+            Config.JWT_ACCESS_SECRET,
+            algorithms=["HS256"],
+            options={"verify_signature": True}
+        )
+    except PyJWTError:
+        return
 
-    token_type, _, params = authorization.partition(" ")
-    if token_type.lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Not authorized")
 
-    return params
+def validate_refresh_token(refresh_token: str) -> typing.Optional[dict]:
+    try:
+        return jwt.decode(
+            refresh_token,
+            Config.JWT_REFRESH_SECRET,
+            algorithms=["HS256"],
+            options={"verify_signature": True}
+        )
+    except PyJWTError:
+        return

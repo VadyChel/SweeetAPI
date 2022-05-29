@@ -13,4 +13,7 @@ class Config:
     NICK_MAX_LENGTH = 48
     PASSWORD_MIN_LENGTH = 10
 
+    JWT_REFRESH_SECRET = ''
+    JWT_ACCESS_SECRET = ''
+
     DEBUG = True

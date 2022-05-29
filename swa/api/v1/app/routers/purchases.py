@@ -15,20 +15,12 @@ router = APIRouter()
     "/purchases",
     response_model=typing.List[schemas.UserPurchaseInResponse]
 )
-async def get_user_purchases(
+async def get_all_purchases(
         limit: int = 20,
         skip: int = 0,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    current_user_id = crud.get_current_user_id(db=db, token=authorization)
-    if current_user_id is None:
-        raise ResponseException(code=10003)
-
-    current_user = crud.get_user(db=db, user_id=current_user_id)
-    if current_user is None:
-        raise ResponseException(code=10000)
-
     if current_user.access_level < 2:
         raise ResponseException(code=10004)
 
@@ -45,9 +37,7 @@ async def get_user_purchases(
         skip: int = 0,
         db: Session = Depends(dependencies.get_db)
 ):
-    if crud.get_user(db=db, user_id=user_id) is None:
-        raise ResponseException(code=10000)
-
+    crud.get_user(db=db, user_id=user_id)  # Check if user not found
     return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
 
 
@@ -58,17 +48,10 @@ async def get_user_purchases(
 async def get_user_purchases_by_token(
         limit: int = 20,
         skip: int = 0,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    if crud.get_user(db=db, user_id=user_id) is None:
-        raise ResponseException(code=10000)
-
-    return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
+    return crud.get_user_purchases(db=db, user_id=current_user.user_id, limit=limit, skip=skip)
 
 
 @router.get(
@@ -84,14 +67,10 @@ async def get_user_purchases_count(user_id: str, db: Session = Depends(dependenc
     response_model=int
 )
 async def get_user_purchases_by_token(
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    return crud.get_user_purchases_count(db=db, user_id=user_id)
+    return crud.get_user_purchases_count(db=db, user_id=current_user.user_id)
 
 
 @router.get(

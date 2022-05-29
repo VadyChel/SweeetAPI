@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BIGINT, String
+from sqlalchemy import Column, BIGINT, String, JSON
 from ..database import Base
 
 
@@ -7,6 +7,5 @@ class AuthTokens(Base):
 
     id = Column(BIGINT, primary_key=True)
     user_id = Column(String)
-    token = Column(String)
     refresh_token = Column(String)
-    expiry_at = Column(BIGINT)
+    access_level = Column(BIGINT)

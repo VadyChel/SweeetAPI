@@ -11,7 +11,7 @@ class Privilege(BaseModel):
 
 
 class UserInResponse(BaseModel):
-    id: int
+    id: str
     nick: str
     email: str
     skin_url: typing.Optional[str]

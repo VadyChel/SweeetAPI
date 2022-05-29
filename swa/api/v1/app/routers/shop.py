@@ -33,23 +33,15 @@ async def get_shop(skip: int = 0, limit: int = 20, db: Session = Depends(depende
 )
 async def buy_block(
         buying_data: schemas.BuyShopItem,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
     block = crud.get_shop_item(db=db, block_id=buying_data.block_id)
     if block is None:
         raise ResponseException(code=10005)
 
     cost = block.cost[str(buying_data.server_id)] * (buying_data.count / block.count_per_one_cost)
-    if user.coins < cost:
+    if current_user.db_user.coins < cost:
         raise ResponseException(code=10006)
 
     purchases_manager.add_item(QueueItemSchema(
@@ -57,7 +49,7 @@ async def buy_block(
         data={
             "type": "user",
             "purchase": schemas.UserPurchaseInRequest(
-                user_id=user_id,
+                user_id=current_user.user_id,
                 cost=cost,
                 bought_item=block.block_name,
                 count=buying_data.count,
@@ -73,7 +65,11 @@ async def buy_block(
             item_id=block.id,
             count=buying_data.count,
             item_name=block.block_name,
-            user_id=user_id
+            user_id=current_user.user_id
         ),
     )
-    return crud.edit_user(db=db, user_id=user_id, updated_fields={'coins': user.coins-cost})
+    return crud.edit_user(
+        db=db,
+        user_id=current_user.user_id,
+        updated_fields={'coins': current_user.db_user.coins-cost}
+    )

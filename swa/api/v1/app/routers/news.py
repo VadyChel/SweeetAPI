@@ -37,21 +37,13 @@ async def get_news(news_id: int, db: Session = Depends(dependencies.get_db)):
 )
 async def create_news(
         news: schemas.NewsInRequest,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
-    if user.access_level < 1:
+    if current_user.access_level < 1:
         raise ResponseException(code=10004)
 
-    news.author_id = user_id
+    news.author_id = current_user.user_id
     return crud.add_news(db=db, news=news)
 
 
@@ -62,22 +54,14 @@ async def create_news(
 async def edit_news(
         news_id: int,
         news_changes: schemas.NewsInRequestEdit,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
     news = crud.get_news(db=db, news_id=news_id)
     if news is None:
         raise ResponseException(code=10002)
 
-    if user.access_level <= 1 or news.author_id != news.author_id:
+    if current_user.access_level <= 1 or news.author_id != current_user.user_id:
         raise ResponseException(code=10004)
 
     return crud.edit_news(db=db, news_id=news_id, news=news_changes)
@@ -89,22 +73,14 @@ async def edit_news(
 )
 async def delete_news(
         news_id: int,
-        authorization: str = Depends(dependencies.authorization_header),
+        current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    user_id = crud.get_current_user_id(db=db, token=authorization)
-    if user_id is None:
-        raise ResponseException(code=10003)
-
-    user = crud.get_user(db=db, user_id=user_id)
-    if user is None:
-        raise ResponseException(code=10000)
-
     news = crud.get_news(db=db, news_id=news_id)
     if news is None:
         raise ResponseException(code=10002)
 
-    if user.access_level <= 1 or news.author_id != news.author_id:
+    if current_user.access_level <= 1 or news.author_id != current_user.user_id:
         raise ResponseException(code=10004)
 
     return crud.delete_news(db=db, news_id=news_id)
