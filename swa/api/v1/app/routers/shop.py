@@ -1,9 +1,8 @@
 import typing
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 
-from swa.core.managers import QueueItemSchema, purchases_manager
 from swa.core.utils.other import model_to_dict
 from swa.core.utils.response_exception import ResponseException
 from swa.api.v1.app import dependencies
@@ -33,6 +32,7 @@ async def get_shop(skip: int = 0, limit: int = 20, db: Session = Depends(depende
 )
 async def buy_block(
         buying_data: schemas.BuyShopItem,
+        background_tasks: BackgroundTasks,
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
@@ -44,20 +44,18 @@ async def buy_block(
     if current_user.db_user.coins < cost:
         raise ResponseException(code=10006)
 
-    purchases_manager.add_item(QueueItemSchema(
+    background_tasks.add_task(
+        crud.purchases.create,
         db=db,
-        data={
-            "type": "user",
-            "purchase": schemas.UserPurchaseInRequest(
-                user_id=current_user.user_id,
-                cost=cost,
-                bought_item=block.block_name,
-                count=buying_data.count,
-                bought_item_id=block.id,
-                type='block'
-            )
-        }
-    ))
+        purchase=schemas.UserPurchaseInRequest(
+            user_id=current_user.user_id,
+            cost=cost,
+            bought_item=block.block_name,
+            count=buying_data.count,
+            bought_item_id=block.id,
+            type='block'
+        )
+    )
 
     crud.bought_items.create(
         db=db,
