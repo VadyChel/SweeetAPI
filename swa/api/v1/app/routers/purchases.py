@@ -24,7 +24,7 @@ async def get_all_purchases(
     if current_user.access_level < 2:
         raise ResponseException(code=10004)
 
-    return crud.get_all_purchases(db=db, limit=limit, skip=skip)
+    return crud.purchases.get_all(db=db, limit=limit, skip=skip)
 
 
 @router.get(
@@ -37,8 +37,8 @@ async def get_user_purchases(
         skip: int = 0,
         db: Session = Depends(dependencies.get_db)
 ):
-    crud.get_user(db=db, user_id=user_id)  # Check if user not found
-    return crud.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
+    crud.users.get(db=db, user_id=user_id)  # Check if user not found
+    return crud.purchases.get_user_purchases(db=db, user_id=user_id, limit=limit, skip=skip)
 
 
 @router.get(
@@ -51,7 +51,7 @@ async def get_user_purchases_by_token(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    return crud.get_user_purchases(db=db, user_id=current_user.user_id, limit=limit, skip=skip)
+    return crud.purchases.get_user_purchases(db=db, user_id=current_user.user_id, limit=limit, skip=skip)
 
 
 @router.get(
@@ -59,7 +59,7 @@ async def get_user_purchases_by_token(
     response_model=int
 )
 async def get_user_purchases_count(user_id: str, db: Session = Depends(dependencies.get_db)):
-    return crud.get_user_purchases_count(db=db, user_id=user_id)
+    return crud.purchases.get_user_purchases_count(db=db, user_id=user_id)
 
 
 @router.get(
@@ -70,7 +70,7 @@ async def get_user_purchases_by_token(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    return crud.get_user_purchases_count(db=db, user_id=current_user.user_id)
+    return crud.purchases.get_user_purchases_count(db=db, user_id=current_user.user_id)
 
 
 @router.get(
@@ -78,4 +78,4 @@ async def get_user_purchases_by_token(
     response_model=int
 )
 async def get_block_purchases_count(block_id: int, db: Session = Depends(dependencies.get_db)):
-    return crud.get_block_purchases_count(db=db, block_id=block_id)
+    return crud.purchases.get_block_purchases_count(db=db, block_id=block_id)

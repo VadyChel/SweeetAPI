@@ -20,10 +20,10 @@ router = APIRouter()
 async def get_shop(skip: int = 0, limit: int = 20, db: Session = Depends(dependencies.get_db)):
     return [
         {
-            "purchases": crud.get_block_purchases_count(db=db, block_id=shop_item.id),
+            "purchases": crud.purchases.get_block_purchases_count(db=db, block_id=shop_item.id),
             **model_to_dict(shop_item)
         }
-        for shop_item in crud.get_shop(db=db, skip=skip, limit=limit)
+        for shop_item in crud.shop.get(db=db, skip=skip, limit=limit)
     ]
 
 
@@ -36,9 +36,9 @@ async def buy_block(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    block = crud.get_shop_item(db=db, block_id=buying_data.block_id)
-    if block is None:
-        raise ResponseException(code=10005)
+    block = crud.shop.get_item(db=db, block_id=buying_data.block_id)
+    if buying_data.server_id not in block.available_on_servers:
+        raise ResponseException(code=10010)
 
     cost = block.cost[str(buying_data.server_id)] * (buying_data.count / block.count_per_one_cost)
     if current_user.db_user.coins < cost:
@@ -58,7 +58,8 @@ async def buy_block(
             )
         }
     ))
-    crud.add_user_bought_items(
+
+    crud.bought_items.create(
         db=db,
         block=schemas.BoughtItemInRequest(
             minecraft_item_id=block.minecraft_block_id,
@@ -68,7 +69,7 @@ async def buy_block(
             user_id=current_user.user_id
         ),
     )
-    return crud.edit_user(
+    return crud.users.update(
         db=db,
         user_id=current_user.user_id,
         updated_fields={'coins': current_user.db_user.coins-cost}

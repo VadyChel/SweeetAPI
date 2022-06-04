@@ -25,7 +25,7 @@ async def get_current_user(current_user: dependencies.Authorization = Depends(de
     response_model=schemas.UserInResponse
 )
 async def get_user(user_id: str, db: Session = Depends(dependencies.get_db)):
-    return crud.get_user(db=db, user_id=user_id)
+    return crud.users.get(db=db, user_id=user_id)
 
 
 @router.get(
@@ -36,7 +36,7 @@ async def get_user_balance_by_token(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    return crud.get_user_balance(db=db, user_id=current_user.user_id)
+    return crud.bloksy_balances.get_user_balances(db=db, user_id=current_user.user_id)
 
 
 @router.get(
@@ -48,7 +48,11 @@ async def get_user_balance_on_server_by_token(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    return crud.get_user_balance_on_server(db=db, user_id=current_user.user_id, server_id=server_id)
+    return crud.bloksy_balances.get_user_balance_on_server(
+        db=db,
+        user_id=current_user.user_id,
+        server_id=server_id
+    )
 
 
 @router.get(
@@ -56,8 +60,8 @@ async def get_user_balance_on_server_by_token(
     response_model=typing.List[schemas.BloksyBalance]
 )
 async def get_user_balance(user_id: str, db: Session = Depends(dependencies.get_db)):
-    crud.get_user(db=db, user_id=user_id)  # Check if user not found
-    return crud.get_user_balance(db=db, user_id=user_id)
+    crud.users.get(db=db, user_id=user_id)  # Check if user not found
+    return crud.bloksy_balances.get_user_balances(db=db, user_id=user_id)
 
 
 @router.get(
@@ -69,8 +73,10 @@ async def get_user_balance_on_server(
         server_id: int,
         db: Session = Depends(dependencies.get_db)
 ):
-    user = crud.get_user(db=db, user_id=user_id)
-    return crud.get_user_balance_on_server(db=db, user_id=user_id, server_id=server_id)
+    crud.users.get(db=db, user_id=user_id)  # Check if user exists
+    return crud.bloksy_balances.get_user_balance_on_server(
+        db=db, user_id=user_id, server_id=server_id
+    )
 
 
 @router.put(
@@ -82,8 +88,12 @@ async def change_user_nick(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    crud.edit_auth(db=db, user_id=current_user.user_id, updated_fields={'nick': new_nick.new_nick})
-    return crud.edit_user(db=db, user_id=current_user.user_id, updated_fields={'nick': new_nick.new_nick})
+    crud.auth.update(db=db, user_id=current_user.user_id, updated_fields={'nick': new_nick.new_nick})
+    return crud.users.update(
+        db=db,
+        user_id=current_user.user_id,
+        updated_fields={'nick': new_nick.new_nick}
+    )
 
 
 @router.put(
@@ -99,9 +109,9 @@ async def change_user_nick_by_id(
     if current_user.access_level < 2:
         raise ResponseException(code=10004)
 
-    user = crud.get_user(db=db, user_id=user_id)
-    crud.edit_auth(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
-    return crud.edit_user(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
+    crud.users.get(db=db, user_id=user_id)  # Check if user exists
+    crud.auth.update(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
+    return crud.users.update(db=db, user_id=user_id, updated_fields={'nick': new_nick.new_nick})
 
 
 @router.get(
@@ -112,7 +122,7 @@ async def get_user_bought_items(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    return crud.get_user_bought_items(db=db, user_id=current_user.user_id)
+    return crud.bought_items.get(db=db, user_id=current_user.user_id)
 
 
 @router.post(
@@ -128,13 +138,13 @@ async def exchange_user_coins_to_bloksy(
     if current_user.db_user.coins < coins:
         raise ResponseException(code=10006)
 
-    crud.change_bloksy_balance(
+    crud.bloksy_balances.update(
         db=db,
         server_id=server_id,
         user_id=current_user.user_id,
         added_bloksy=Config.COINS_EXCHANGE_FUNC(coins)
     )
-    return crud.edit_user(
+    return crud.users.update(
         db=db,
         user_id=current_user.user_id,
         updated_fields={'coins': current_user.db_user.coins-coins}

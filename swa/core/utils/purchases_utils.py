@@ -4,7 +4,7 @@ from swa.core.managers import QueueManager
 
 async def purchases_handler(manager: QueueManager):
     for item in manager.queue:
-        crud.add_user_purchase(
+        crud.purchases.create(
             db=item.db,
             purchase=item.data.get('purchase')
         )

@@ -16,7 +16,7 @@ router = APIRouter()
     response_model=typing.List[schemas.NewsInResponse]
 )
 async def get_all_news(skip: int = 0, limit: int = 20, db: Session = Depends(dependencies.get_db)):
-    return crud.get_all_news(db=db, skip=skip, limit=limit)
+    return crud.news.get_all(db=db, skip=skip, limit=limit)
 
 
 @router.get(
@@ -24,11 +24,7 @@ async def get_all_news(skip: int = 0, limit: int = 20, db: Session = Depends(dep
     response_model=schemas.NewsInResponse
 )
 async def get_news(news_id: int, db: Session = Depends(dependencies.get_db)):
-    news = crud.get_news(db=db, news_id=news_id)
-    if news is None:
-        raise ResponseException(code=10002)
-
-    return news
+    return crud.news.get(db=db, news_id=news_id)
 
 
 @router.post(
@@ -44,7 +40,7 @@ async def create_news(
         raise ResponseException(code=10004)
 
     news.author_id = current_user.user_id
-    return crud.add_news(db=db, news=news)
+    return crud.news.create(db=db, news_to_create=news)
 
 
 @router.patch(
@@ -57,14 +53,11 @@ async def edit_news(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    news = crud.get_news(db=db, news_id=news_id)
-    if news is None:
-        raise ResponseException(code=10002)
-
+    news = crud.news.get(db=db, news_id=news_id)
     if current_user.access_level <= 1 or news.author_id != current_user.user_id:
         raise ResponseException(code=10004)
 
-    return crud.edit_news(db=db, news_id=news_id, news=news_changes)
+    return crud.news.update(db=db, news_id=news_id, news_to_edit=news_changes)
 
 
 @router.delete(
@@ -76,12 +69,9 @@ async def delete_news(
         current_user: dependencies.Authorization = Depends(dependencies.Authorization),
         db: Session = Depends(dependencies.get_db)
 ):
-    news = crud.get_news(db=db, news_id=news_id)
-    if news is None:
-        raise ResponseException(code=10002)
-
+    news = crud.news.get(db=db, news_id=news_id)
     if current_user.access_level <= 1 or news.author_id != current_user.user_id:
         raise ResponseException(code=10004)
 
-    return crud.delete_news(db=db, news_id=news_id)
+    return crud.news.delete(db=db, news_id=news_id)
 

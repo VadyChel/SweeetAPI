@@ -17,7 +17,7 @@ router = APIRouter()
     response_model=typing.List[schemas.ServerInResponse]
 )
 async def get_servers(skip: int = 0, limit: int = 20, db: Session = Depends(dependencies.get_db)):
-    return crud.get_servers(db=db, skip=skip, limit=limit)
+    return crud.servers.get_all(db=db, skip=skip, limit=limit)
 
 
 @router.get(
@@ -25,11 +25,7 @@ async def get_servers(skip: int = 0, limit: int = 20, db: Session = Depends(depe
     response_model=schemas.ServerInResponse
 )
 async def get_server(server_id: int, db: Session = Depends(dependencies.get_db)):
-    server = crud.get_server(db=db, server_id=server_id)
-    if server is None:
-        raise ResponseException(code=10001)
-
-    return server
+    return crud.servers.get(db=db, server_id=server_id)
 
 
 @router.get(
@@ -37,10 +33,8 @@ async def get_server(server_id: int, db: Session = Depends(dependencies.get_db))
     response_model=schemas.ServerStats
 )
 async def get_server_stats(server_id: int, db: Session = Depends(dependencies.get_db)):
-    if crud.get_server(db=db, server_id=server_id) is None:
-        raise ResponseException(code=10001)
-
-    return crud.get_server_stats(db=db, server_id=server_id)
+    crud.servers.get(db=db, server_id=server_id)  # Check if server exists
+    return crud.servers_stat.get(db=db, server_id=server_id)
 
 
 @router.get(
@@ -51,7 +45,7 @@ async def get_server_top_balances(server_id: int, db: Session = Depends(dependen
     return [
         {
             **model_to_dict(balance),
-            "user_nick": crud.get_user(db=db, user_id=balance.user_id).nick,
+            "user_nick": crud.users.get(db=db, user_id=balance.user_id).nick,
         }
-        for balance in crud.get_bloksy_balances_top_on_server(db=db, server_id=server_id)
+        for balance in crud.bloksy_balances.get_rating_on_server(db=db, server_id=server_id)
     ]

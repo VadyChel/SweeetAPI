@@ -38,7 +38,7 @@ class Authorization:
         if token_data is None:
             raise HTTPException(status_code=401, detail="Not authorized")
 
-        db_user = crud.get_user(db=self._db, user_id=token_data["user_id"])
+        db_user = crud.users.get(db=self._db, user_id=token_data["user_id"])
 
         self.access_token = access_token
         self.db_user = db_user

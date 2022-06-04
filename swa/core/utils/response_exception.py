@@ -12,7 +12,8 @@ RESPONSE_CODE_TO_STATUS_CODE = {
     10006: {"status_code": 403, "detail": "Not enough coins"},
     10007: {"status_code": 400, "detail": "Email is already used"},
     10008: {"status_code": 400, "detail": "Invalid nick or email was provided"},
-    10009: {"status_code": 400, "detail": "Invalid password was provided"}
+    10009: {"status_code": 400, "detail": "Invalid password was provided"},
+    10010: {"status_code": 400, "detail": "This block isn't available on specified server"}
 }
 
 

@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.post("/register", response_model=schemas.TokenInResponse)
 async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depends(dependencies.get_db)):
-    token = fix_datetime(crud.register(db=db, auth=auth).dict())
+    token = fix_datetime(crud.auth_tokens.register(db=db, auth=auth).dict())
     response = JSONResponse(content=token)
     response.set_cookie(
         key="refresh_token",
@@ -26,7 +26,7 @@ async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depe
 
 @router.post("/login", response_model=schemas.TokenInResponse)
 async def get_token(auth: schemas.LoginInRequest,  db: Session = Depends(dependencies.get_db)):
-    token = fix_datetime(crud.authorize(db=db, auth=auth).dict())
+    token = fix_datetime(crud.auth_tokens.authorize(db=db, auth=auth).dict())
     response = JSONResponse(content=token)
     response.set_cookie(
         key="refresh_token",
@@ -47,7 +47,7 @@ async def revoke_token(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     response.delete_cookie("refresh_token", httponly=True)
-    return crud.revoke_token(db=db, refresh_token=refresh_token_cookie)
+    return crud.auth_tokens.revoke_token(db=db, refresh_token=refresh_token_cookie)
 
 
 @router.get("/refresh", response_model=schemas.TokenInResponse)
@@ -58,7 +58,7 @@ async def refresh_token(
     if refresh_token_cookie is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    refreshed_token = fix_datetime(crud.get_refresh_token(
+    refreshed_token = fix_datetime(crud.auth_tokens.get_refresh_token(
         db=db,
         refresh_token=refresh_token_cookie
     ).dict())
