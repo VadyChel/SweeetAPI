@@ -38,7 +38,7 @@ async def get_server_stats(server_id: int, db: Session = Depends(dependencies.ge
 
 
 @router.get(
-    "/servers/{server_id}/top",
+    "/servers/{server_id}/rating",
     response_model=typing.List[schemas.BloksyBalanceInTop]
 )
 async def get_server_top_balances(server_id: int, db: Session = Depends(dependencies.get_db)):
