@@ -49,7 +49,9 @@ class AuthTokensCRUD(BaseCRUD[AuthTokens]):
         )
 
     def authorize(self, db: Session, auth: LoginInRequest) -> TokenInResponse:
-        crud.auth.check_if_user_registered(db=db, email=auth.email)
+        found_auth = crud.auth.get(db=db, email=auth.email)
+        if found_auth is None:
+            raise ResponseException(code=10003)
 
         password_hash = get_password_hash(auth.password)
         is_password_correct = verify_password(plain_password=auth.password, hashed_password=password_hash)
@@ -82,7 +84,7 @@ class AuthTokensCRUD(BaseCRUD[AuthTokens]):
                 {"refresh_token": refresh_token, "access_level": access_level}
             )
             db.commit()
-            return get_token(db=db, user_id=user_id)
+            return self.get_token(db=db, user_id=user_id)
 
         db_token = self.model(
             refresh_token=refresh_token,
