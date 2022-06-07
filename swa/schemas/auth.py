@@ -26,6 +26,13 @@ class AuthInRequest(BaseModel):
     password: str = Field(min_length=Config.PASSWORD_MIN_LENGTH)
 
 
+class AuthInResponse(BaseModel):
+    user_id: str
+    nick: str
+    email: str
+    password_hash: str
+
+
 class LoginInRequest(BaseModel):
     email: str
     password: str
