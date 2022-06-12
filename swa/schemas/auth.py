@@ -24,6 +24,7 @@ class AuthInRequest(BaseModel):
     nick: str = Field(min_length=Config.NICK_MIN_LENGTH, max_length=Config.NICK_MAX_LENGTH)
     email: str
     password: str = Field(min_length=Config.PASSWORD_MIN_LENGTH)
+    g_recaptcha_response: str = Field(alias='gRecaptchaResponse')
 
 
 class AuthInResponse(BaseModel):

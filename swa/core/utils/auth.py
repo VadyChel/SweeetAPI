@@ -1,15 +1,16 @@
 import time
 import typing
 import jwt
+import aiohttp
 
 from datetime import datetime, timedelta
-from jwt import PyJWTError
 from random import randint
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from swa import models
 from swa.core import Config
+from swa.core.utils.response_exception import ResponseException
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -62,7 +63,7 @@ def validate_access_token(access_token: str) -> typing.Optional[dict]:
             algorithms=["HS256"],
             options={"verify_signature": True}
         )
-    except PyJWTError:
+    except jwt.PyJWTError:
         return
 
 
@@ -74,5 +75,19 @@ def validate_refresh_token(refresh_token: str) -> typing.Optional[dict]:
             algorithms=["HS256"],
             options={"verify_signature": True}
         )
-    except PyJWTError:
+    except jwt.PyJWTError:
         return
+
+
+async def validate_recaptcha_token(token: str):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(
+                "https://www.google.com/recaptcha/api/siteverify",
+                params={
+                    "response": token,
+                    "secret": Config.G_RECAPTCHA_SECRET
+                }
+        ) as resp:
+            success = await resp.json()
+            if not success:
+                raise ResponseException(code=10011)

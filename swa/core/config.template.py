@@ -1,9 +1,9 @@
 class Config:
-    DB_USER = 'postgres'
-    DB_HOST = '127.0.0.1'
-    DB_PASS = 'zyzel19'
-    DB_NAME = 'sweeet'
-    DB_PORT = '5400'
+    DB_USER = ''
+    DB_HOST = ''
+    DB_PASS = ''
+    DB_NAME = ''
+    DB_PORT = ''
 
     START_BLOKSY = 500
     START_COINS = 10
@@ -19,3 +19,4 @@ class Config:
     DEBUG = True
 
     CLIENT_URL = 'http://localhost:3000'
+    G_RECAPTCHA_SECRET = ""

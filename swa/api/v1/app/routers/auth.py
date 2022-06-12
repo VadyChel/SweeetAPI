@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Cookie, HTTPException, Response
 from fastapi.responses import JSONResponse
 
+from swa.core.utils.auth import validate_recaptcha_token
 from swa.core.utils.response_exception import ResponseException
 from swa.core.utils.other import model_to_dict, fix_datetime
 from swa.api.v1.app import dependencies
@@ -13,6 +14,8 @@ router = APIRouter()
 
 @router.post("/register", response_model=schemas.TokenInResponse)
 async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depends(dependencies.get_db)):
+    await validate_recaptcha_token(auth.g_recaptcha_response)
+
     token = fix_datetime(crud.auth_tokens.register(db=db, auth=auth).dict())
     response = JSONResponse(content=token)
     response.set_cookie(
