@@ -18,7 +18,7 @@ async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depe
     response.set_cookie(
         key="refresh_token",
         value=token["refresh_token"],
-        max_age=token["expiry_at"],
+        expires=token["expires_in"],
         httponly=True
     )
     return response
@@ -31,7 +31,7 @@ async def get_token(auth: schemas.LoginInRequest,  db: Session = Depends(depende
     response.set_cookie(
         key="refresh_token",
         value=token["refresh_token"],
-        max_age=token["expiry_at"],
+        expires=token["expires_in"],
         httponly=True
     )
     return response
@@ -66,7 +66,7 @@ async def refresh_token(
     response.set_cookie(
         key="refresh_token",
         value=refreshed_token["refresh_token"],
-        max_age=refreshed_token["expiry_at"],
+        expires=refreshed_token["expires_in"],
         httponly=True
     )
     return response

@@ -27,13 +27,13 @@ def generate_user_id(db: Session):
 
 
 def generate_tokens(user_id: str, access_level: int):
-    access_token_expiry_at = int(time.time() + (60 * 60 * 24 * 5))  # 5 days
-    refresh_token_expiry_at = int(time.time() + (60 * 60 * 24 * 45))  # 45 days
+    access_token_expires_in = (60 * 60 * 24 * 5)  # 5 days
+    refresh_token_expires_in = (60 * 60 * 24 * 45)  # 45 days
     refresh_token = jwt.encode(
         {
             "user_id": user_id,
             "access_level": access_level,
-            "exp": access_token_expiry_at
+            "exp": int(access_token_expires_in + time.time())
         },
         Config.JWT_REFRESH_SECRET,
         algorithm='HS256'
@@ -42,7 +42,7 @@ def generate_tokens(user_id: str, access_level: int):
         {
             "user_id": user_id,
             "access_level": access_level,
-            "exp": refresh_token_expiry_at
+            "exp": int(refresh_token_expires_in + time.time())
         },
         Config.JWT_ACCESS_SECRET,
         algorithm='HS256'
@@ -50,7 +50,7 @@ def generate_tokens(user_id: str, access_level: int):
     return {
         "refresh_token": refresh_token,
         "access_token": access_token,
-        "expiry_at": refresh_token_expiry_at
+        "expires_in": access_token_expires_in
     }
 
 

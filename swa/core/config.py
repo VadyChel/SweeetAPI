@@ -17,3 +17,5 @@ class Config:
     JWT_ACCESS_SECRET = ''
 
     DEBUG = True
+
+    CLIENT_URL = 'http://localhost:3000'

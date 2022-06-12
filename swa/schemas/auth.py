@@ -14,7 +14,7 @@ class TokenInDb(BaseModel):
 class TokenInResponse(TokenInDb):
     user: UserInResponse
     access_token: str
-    expiry_at: int
+    expires_in: int
 
     class Config:
         orm_mode = True
