@@ -2,6 +2,9 @@ import json
 import typing
 import datetime
 
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+
 
 class DatetimeSerializer(json.JSONEncoder):
     def default(self, obj: typing.Any) -> typing.Any:
@@ -22,3 +25,15 @@ def model_to_dict(row):
         d[column.name] = getattr(row, column.name)
 
     return d
+
+
+def create_auth_response(auth_schema: BaseModel) -> JSONResponse:
+    fixed_content = fix_datetime(auth_schema.dict())
+    response = JSONResponse(content=fixed_content)
+    response.set_cookie(
+        key="refresh_token",
+        value=token["refresh_token"],
+        expires=token["expires_in"],
+        httponly=True
+    )
+    return response
