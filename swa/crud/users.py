@@ -1,4 +1,5 @@
 import datetime
+import typing
 
 from sqlalchemy.orm import Session
 from . import BaseCRUD
@@ -14,6 +15,9 @@ class UsersCRUD(BaseCRUD[Users]):
             raise ResponseException(code=10000)
 
         return found_user
+
+    def get_by_email(self, db: Session, email: str) -> typing.Optional[UserInResponse]:
+        return db.query(self.model).filter(self.model.email == email).first()
 
     def update(
             self,

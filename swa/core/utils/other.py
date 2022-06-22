@@ -32,8 +32,8 @@ def create_auth_response(auth_schema: BaseModel) -> JSONResponse:
     response = JSONResponse(content=fixed_content)
     response.set_cookie(
         key="refresh_token",
-        value=token["refresh_token"],
-        expires=token["expires_in"],
+        value=fixed_content["refresh_token"],
+        expires=fixed_content["expires_in"],
         httponly=True
     )
     return response

@@ -7,12 +7,67 @@ from datetime import datetime, timedelta
 from random import randint
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from fastapi import Request, HTTPException
+from fastapi.responses import RedirectResponse
+from starlette.config import Config as SConfig
+from authlib.integrations.starlette_client import OAuth
 
 from swa import models
 from swa.core import Config
 from swa.core.utils.response_exception import ResponseException
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+config_data = {
+    'GOOGLE_CLIENT_ID': Config.GOOGLE_CLIENT_ID,
+    'GOOGLE_CLIENT_SECRET': Config.GOOGLE_CLIENT_SECRET
+}
+starlette_config = SConfig(environ=config_data)
+oauth = OAuth(config=starlette_config)
+oauth.register(
+    name="google",
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"}
+)
+oauth_cache = {}
+
+
+async def create_google_auth_url(request: Request):
+    authorization_url = await oauth.google.create_authorization_url(str(request.base_url)+"v1/auth/login")
+    key = authorization_url.pop('state')
+    oauth_cache[key] = {'data': authorization_url, 'exp': time.time()+(60*60)}
+    return RedirectResponse(authorization_url['url'], status_code=302)
+
+
+async def get_google_userinfo(request: Request):
+    error = request.query_params.get('error', None)
+    error_description = request.query_params.get('error_description', None)
+    state = request.query_params.get('state')
+    code = request.query_params.get('code')
+
+    if error is not None:
+        raise HTTPException(status_code=401, detail=f'{error}: {error_description}')
+
+    cache_value = oauth_cache.get(state)
+    state_data = cache_value.get('data') if cache_value else None
+    if state_data is None:
+        raise HTTPException(status_code=401, detail='State in request not equal state in response')
+
+    # Clear expired keys in cache
+    now = time.time()
+    for key in dict(oauth_cache):
+        value = oauth_cache[key]
+        exp = value.get('exp')
+        if not exp or exp < now:
+            oauth_cache.pop(key)
+
+    access_token = await oauth.google.fetch_access_token(
+        code=code,
+        state=state,
+        redirect_uri=str(request.base_url)+"v1/auth/login"
+    )
+
+    # Get userinfo of google account
+    return await oauth.google.parse_id_token(access_token, nonce=state_data['nonce'])
 
 
 def verify_password(plain_password, hashed_password):
@@ -85,7 +140,7 @@ async def validate_recaptcha_token(token: str):
                 "https://www.google.com/recaptcha/api/siteverify",
                 params={
                     "response": token,
-                    "secret": Config.G_RECAPTCHA_SECRET
+                    "secret": Config.RECAPTCHA_SECRET
                 }
         ) as resp:
             success = await resp.json()

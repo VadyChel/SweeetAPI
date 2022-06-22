@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Response
 from ratelimit import RateLimitMiddleware, Rule
 from ratelimit.backends.redis import RedisBackend
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.types import Scope
 from sqlalchemy.exc import SQLAlchemyError
 from swa.core import Config
@@ -23,6 +24,7 @@ async def auth_func(scope: Scope) -> typing.Tuple[str, str]:
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[Config.CLIENT_URL],
