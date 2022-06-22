@@ -37,3 +37,10 @@ class AuthInResponse(BaseModel):
 class LoginInRequest(BaseModel):
     email: str
     password: str
+
+
+class GoogleAuthInRequest(BaseModel):
+    code: str
+    state: str
+    error: str = None
+    error_description: str = None

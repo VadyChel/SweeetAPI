@@ -13,6 +13,7 @@ from starlette.config import Config as SConfig
 from authlib.integrations.starlette_client import OAuth
 
 from swa import models
+from swa.schemas import GoogleAuthInRequest
 from swa.core import Config
 from swa.core.utils.response_exception import ResponseException
 
@@ -31,23 +32,19 @@ oauth.register(
 oauth_cache = {}
 
 
-async def create_google_auth_url(request: Request):
-    authorization_url = await oauth.google.create_authorization_url(str(request.base_url)+"v1/auth/login")
+async def create_google_auth_url(redirect_uri: str):
+    authorization_url = await oauth.google.create_authorization_url(redirect_uri)
     key = authorization_url.pop('state')
+    authorization_url['redirect_uri'] = redirect_uri
     oauth_cache[key] = {'data': authorization_url, 'exp': time.time()+(60*60)}
     return RedirectResponse(authorization_url['url'], status_code=302)
 
 
-async def get_google_userinfo(request: Request):
-    error = request.query_params.get('error', None)
-    error_description = request.query_params.get('error_description', None)
-    state = request.query_params.get('state')
-    code = request.query_params.get('code')
+async def get_google_userinfo(auth: GoogleAuthInRequest):
+    if auth.error is not None:
+        raise HTTPException(status_code=401, detail=f'{auth.error}: {auth.error_description}')
 
-    if error is not None:
-        raise HTTPException(status_code=401, detail=f'{error}: {error_description}')
-
-    cache_value = oauth_cache.get(state)
+    cache_value = oauth_cache.get(auth.state)
     state_data = cache_value.get('data') if cache_value else None
     if state_data is None:
         raise HTTPException(status_code=401, detail='State in request not equal state in response')
@@ -61,9 +58,9 @@ async def get_google_userinfo(request: Request):
             oauth_cache.pop(key)
 
     access_token = await oauth.google.fetch_access_token(
-        code=code,
-        state=state,
-        redirect_uri=str(request.base_url)+"v1/auth/login"
+        code=auth.code,
+        state=auth.state,
+        redirect_uri=state_data['redirect_uri']
     )
 
     # Get userinfo of google account

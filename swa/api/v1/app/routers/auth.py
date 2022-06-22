@@ -28,8 +28,8 @@ strategies = {
 
 
 @router.get('/google/url')
-async def google_login(request: Request):
-    return await create_google_auth_url(request)
+async def google_login(redirect_uri: str):
+    return await create_google_auth_url(redirect_uri)
 
 
 @router.post("/register", response_model=schemas.TokenInResponse)
@@ -41,13 +41,12 @@ async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depe
 
 @router.post("/login", response_model=schemas.TokenInResponse)
 async def get_token(
-        request: Request,
-        auth: typing.Optional[schemas.LoginInRequest] = None,
+        auth: typing.Union[schemas.LoginInRequest, schemas.GoogleAuthInRequest],
         strategy: str = 'google',
         db: Session = Depends(dependencies.get_db)
 ):
     return create_auth_response(strategies.get(strategy).authorize(
-        db=db, info=await get_google_userinfo(request) if strategy == 'google' else auth
+        db=db, info=await get_google_userinfo(auth) if strategy == 'google' else auth
     ))
 
 

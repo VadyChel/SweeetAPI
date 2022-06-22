@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from . import BaseStrategy
 from swa import crud
+from swa.core import Config
 from swa.schemas import TokenInResponse
 from swa.core.utils.auth import generate_tokens, generate_user_id
 from swa.schemas import TokenInResponse
