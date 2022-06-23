@@ -42,7 +42,7 @@ async def get_token_and_register(auth: schemas.AuthInRequest, db: Session = Depe
 @router.post("/login", response_model=schemas.TokenInResponse)
 async def get_token(
         auth: typing.Union[schemas.LoginInRequest, schemas.GoogleAuthInRequest],
-        strategy: str = 'google',
+        strategy: str = 'default',
         db: Session = Depends(dependencies.get_db)
 ):
     return create_auth_response(strategies.get(strategy).authorize(
