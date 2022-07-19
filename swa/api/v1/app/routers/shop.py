@@ -3,6 +3,7 @@ import typing
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, BackgroundTasks
 
+from swa.core.utils.shop import shop_logging
 from swa.core.utils.other import model_to_dict
 from swa.core.utils.response_exception import ResponseException
 from swa.api.v1.app import dependencies
@@ -45,7 +46,7 @@ async def buy_block(
         raise ResponseException(code=10006)
 
     background_tasks.add_task(
-        crud.purchases.create,
+        shop_logging,
         db=db,
         purchase=schemas.UserPurchaseInRequest(
             user_id=current_user.user_id,
@@ -54,6 +55,11 @@ async def buy_block(
             count=buying_data.count,
             bought_item_id=block.id,
             type='block'
+        ),
+        coins_log=schemas.CoinsLogsInRequest(
+            user_id=current_user.user_id,
+            coins_count=cost,
+            reason=f'Buy x{buying_data.count} {block.block_name}'
         )
     )
 

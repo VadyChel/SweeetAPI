@@ -10,3 +10,4 @@ from .purchases import PurchasesCRUD, purchases
 from .shop import ShopCRUD, shop
 from .bloksy_balances import BloksyBalanceCRUD, bloksy_balances
 from .bought_items import BoughtItemsCRUD, bought_items
+from .coins_logs import CoinsLogsCRUD, coins_logs

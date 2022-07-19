@@ -7,7 +7,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.types import Scope
 from sqlalchemy.exc import SQLAlchemyError
 from swa.core import Config
-from .routers import users, servers, news, auth, purchases, shop, punishments
+from .routers import users, servers, news, auth, purchases, shop, punishments, logs
 from swa.database import engine, Base, SessionLocal
 from swa import models
 
@@ -52,6 +52,10 @@ rate_limit_middleware_backend_options = {
 # )
 app.include_router(
     users.router,
+    prefix="/v1"
+)
+app.include_router(
+    logs.router,
     prefix="/v1"
 )
 app.include_router(
