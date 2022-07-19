@@ -58,7 +58,7 @@ async def buy_block(
         ),
         coins_log=schemas.CoinsLogsInRequest(
             user_id=current_user.user_id,
-            coins_count=cost,
+            coins_count=-cost,
             reason=f'Buy x{buying_data.count} {block.block_name}'
         )
     )
