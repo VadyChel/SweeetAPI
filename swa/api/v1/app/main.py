@@ -7,7 +7,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.types import Scope
 from sqlalchemy.exc import SQLAlchemyError
 from swa.core import Config
-from .routers import users, servers, news, auth, purchases, shop, punishments, logs
+from .routers import users, servers, news, auth, shop, punishments, logs
 from swa.database import engine, Base, SessionLocal
 from swa import models
 
@@ -64,10 +64,6 @@ app.include_router(
 )
 app.include_router(
     shop.router,
-    prefix="/v1"
-)
-app.include_router(
-    purchases.router,
     prefix="/v1"
 )
 app.include_router(
